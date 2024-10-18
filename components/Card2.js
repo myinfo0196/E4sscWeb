@@ -162,7 +162,7 @@ const Card2 = ({ menuName }) => {
         params.sale11010_hc11040 = conditions.representative.trim();
       }
 
-      const response = await axios.get('https://www.my-info.co.kr/m_e4ssc_jqm/jsp/comm.jsp', { 
+      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
         params,
         paramsSerializer: params => {
           return Object.entries(params)
