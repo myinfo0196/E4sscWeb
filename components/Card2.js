@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import Modal from './Modal';
+import Modal2 from './Modal2';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const CardContainer = styled.div`
   padding: 5px;
@@ -121,7 +128,28 @@ const Select = styled.select`
   width: 200px;
 `;
 
+const GridContainer = styled.div`
+  height: 400px;
+  width: 100%;
+  flex: 1;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-left: 20px;
+`;
+
+const columnDefs = [
+  { field: 'HC11020', headerName: '거래처명', width: 150 },
+  { field: 'HC11030', headerName: '사업자번호', width: 120 },
+  { field: 'HC11040', headerName: '대표자', width: 100 },
+  { field: 'HC11070', headerName: '담당자', width: 100 },
+  { field: 'HC11210', headerName: '전화번호', width: 120 },
+];
+
 const Card2 = ({ menuName }) => {
+  const gridRef = useRef(null);
   const [conditions, setConditions] = useState({
     keyword: '',
     customerType: '1',
@@ -130,8 +158,9 @@ const Card2 = ({ menuName }) => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [modalMode, setModalMode] = useState(null);
+  const [modalTitle, setModalTitle] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -184,19 +213,96 @@ const Card2 = ({ menuName }) => {
     }
   };
 
-  const handleRowClick = (item) => {
-    setSelectedItem(item);
-    setIsModalOpen(true);
-  };
+  const handleRowClick = useCallback((event) => {
+    setSelectedItem(event.data);
+  }, []);
 
-  const handleSave = (editedData) => {
-    console.log('Saving edited data:', editedData);
+  const handleCloseModal = useCallback(() => {
+    setSelectedItem(null);
+    setModalMode(null);
+    setModalTitle('');
+  }, []);
+
+  const handleSaveEdit = useCallback((editedItem) => {
+    console.log('Edited item:', editedItem);
     setResults(prevResults => 
       prevResults.map(item => 
-        item.HC11010 === editedData.HC11010 ? editedData : item
+        item.HC11010 === editedItem.HC11010 ? editedItem : item
       )
     );
-  };
+    handleCloseModal();
+  }, []);
+
+  const handleCreate = useCallback(() => {
+    setSelectedItem(null);
+    setModalMode('create');
+    setModalTitle('거래처 정보 등록');
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    if (selectedItem) {
+      setModalMode('edit');
+      setModalTitle('거래처 정보 수정');
+    } else {
+      alert('수정할 항목을 선택해주세요.');
+    }
+  }, [selectedItem]);
+
+  const handleDelete = useCallback(() => {
+    if (selectedItem) {
+      const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
+      if (confirmDelete) {
+        setResults(prevResults => prevResults.filter(item => item.HC11010 !== selectedItem.HC11010));
+        setSelectedItem(null);
+        if (gridRef.current && gridRef.current.api) {
+          gridRef.current.api.deselectAll();
+        }
+      }
+    } else {
+      alert('삭제할 항목을 선택해주세요.');
+    }
+  }, [selectedItem]);
+
+  const handleExcelDownload = useCallback(async () => {
+    if (gridRef.current && gridRef.current.api) {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('검색결과');
+
+      // 헤더 추가
+      worksheet.addRow(columnDefs.map(col => col.headerName));
+
+      // 데이터 추가
+      gridRef.current.api.forEachNode(node => {
+        worksheet.addRow(columnDefs.map(col => node.data[col.field]));
+      });
+
+      // 열 너비 설정
+      columnDefs.forEach((col, index) => {
+        worksheet.getColumn(index + 1).width = col.width / 7;
+      });
+
+      // 엑셀 파일 생성 및 다운로드
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), '검색결과.xlsx');
+    }
+  }, []);
+
+  const handlePdfDownload = useCallback(() => {
+    const gridElement = document.querySelector('.ag-theme-alpine');
+    if (gridElement) {
+      html2canvas(gridElement).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [canvas.width, canvas.height]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('검색결과.pdf');
+      });
+    }
+  }, []);
 
   return (
     <CardContainer>
@@ -233,44 +339,45 @@ const Card2 = ({ menuName }) => {
             />
           </InputGroup>
         </InputsWrapper>
-        <Button onClick={handleSearch} disabled={loading}>
-          {loading ? '검색 중...' : '검색'}
-        </Button>
+        <ButtonGroup>
+          <Button onClick={handleSearch}>조회</Button>
+          <Button onClick={handleCreate}>등록</Button>
+          <Button onClick={handleEdit}>수정</Button>
+          <Button onClick={handleDelete}>삭제</Button>
+          <Button onClick={handleExcelDownload}>엑셀</Button>
+          <Button onClick={handlePdfDownload}>PDF</Button>
+        </ButtonGroup>
       </ConditionArea>
       <ResultArea>
         {loading && <p>데이터를 불러오는 중...</p>}
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        {!loading && !error && results.length > 0 ? (
-          <TableContainer>
-            <TableHeader>
-              <TableCell>거래처명</TableCell>
-              <TableCell>사업자번호</TableCell>
-              <TableCell>대표자</TableCell>
-              <TableCell>담당자</TableCell>
-              <TableCell>전화번호</TableCell>
-            </TableHeader>
-            <TableBody>
-              {results.map((item, index) => (
-                <TableRow key={index} onClick={() => handleRowClick(item)}>
-                  <TableCell>{item.HC11020}</TableCell>
-                  <TableCell>{item.HC11030}</TableCell>
-                  <TableCell>{item.HC11040}</TableCell>
-                  <TableCell>{item.HC11070}</TableCell>
-                  <TableCell>{item.HC11210}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </TableContainer>
-        ) : (
-          <p>검색 결과가 없습니다.</p>
+        {!loading && !error && (
+          <GridContainer className="ag-theme-alpine">
+            <AgGridReact
+              ref={gridRef}
+              columnDefs={columnDefs}
+              rowData={results}
+              onRowClicked={handleRowClick}
+              rowSelection="single"
+              suppressRowDeselection={true}
+              defaultColDef={{
+                sortable: true,
+                filter: true,
+                resizable: true,
+              }}
+            />
+          </GridContainer>
         )}
       </ResultArea>
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        data={selectedItem} 
-        onSave={handleSave}
-      />
+      {modalMode && (
+        <Modal2
+          item={modalMode === 'create' ? {} : selectedItem}
+          onClose={handleCloseModal}
+          onSave={handleSaveEdit}
+          mode={modalMode}
+          title={modalTitle}
+        />
+      )}
     </CardContainer>
   );
 };
