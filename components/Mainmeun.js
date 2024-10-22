@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import styled from '@emotion/styled'
-import Card1 from './Card1'  // Card1 컴포넌트를 import 합니다.
-import Card2 from './Card2'  // Card1 컴포넌트를 import 합니다.
-import Card3 from './Card3'  // Card1 컴포넌트를 import 합니다.
+import Card1 from './Card1'
+import Card2 from './Card2'
+import Card3 from './Card3'
 
 const AppContainer = styled.div`
   display: flex;
@@ -12,6 +12,9 @@ const AppContainer = styled.div`
 `
 
 const Header = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background-color: #f0f0f0;
   border-bottom: 1px solid #ccc;
   padding: 5px 10px;
@@ -24,8 +27,6 @@ const Logo = styled.div`
 
 const TabMenu = styled.div`
   display: flex;
-  background-color: #e0e0e0;
-  border-bottom: 1px solid #ccc;
 `
 
 const Tab = styled.div`
@@ -79,10 +80,44 @@ const CardContainer = styled.div`
   overflow: hidden; // 변경: auto에서 hidden으로 변경
 `
 
+const ButtonContainer = styled.div`
+  display: flex;
+`
+
+const ActionButton = styled.button`
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+`
+
 export default function MainMenu() {
   const [activeTab, setActiveTab] = useState('기초업무')
   const [expandedItems, setExpandedItems] = useState({})
   const [selectedContent, setSelectedContent] = useState(null)
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false })
+  const cardRef = useRef(null)
+
+  useEffect(() => {
+    // Simulating permission fetch
+    setPermissions({ view: false, add: false, update: false, delete: false })
+  }, [])
+
+  const handlePermissionsChange = useCallback((newPermissions) => {
+    setPermissions(newPermissions);
+  }, []);
+
+  const handleAction = useCallback((action) => {
+    if (cardRef.current && cardRef.current[action]) {
+      cardRef.current[action]()
+    }
+  }, [])
 
   // menuData를 컴포넌트 내부에서 정의
   const menuData = {
@@ -206,46 +241,54 @@ export default function MainMenu() {
     ))
   }
 
-  const renderContent = () => {
-    let content;
+  const renderContent = useCallback(() => {
     switch (selectedContent) {
       case '사업장 코드 관리':
-        content = <Card1 menuName={selectedContent} />;
-        break;
+        return <Card1 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
       case '거래처 코드 관리':
-        content = <Card2 menuName={selectedContent} />;
-        break;
+        return <Card2 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
       case '품명 코드 관리':
-        content = <Card3 menuName={selectedContent} />;
-        break;
+        return <Card3 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
       default:
-        content = selectedContent ? (
+        return selectedContent ? (
           <p>선택된 메뉴: {selectedContent}</p>
         ) : (
           <p>왼쪽 사이드바에서 메뉴를 선택해주세요.</p>
         );
     }
-    return <CardContainer>{content}</CardContainer>;
-  };
+  }, [selectedContent, handlePermissionsChange]);
 
   return (
     <AppContainer>
-      <TabMenu>
-        <Tab active={activeTab === '기초업무'} onClick={() => setActiveTab('기초업무')}>기초업무</Tab>
-        <Tab active={activeTab === '수주업무'} onClick={() => setActiveTab('수주업무')}>수주업무</Tab>
-        <Tab active={activeTab === '매입업무'} onClick={() => setActiveTab('매입업무')}>매입업무</Tab>
-        <Tab active={activeTab === '재고업무'} onClick={() => setActiveTab('재고업무')}>재고업무</Tab>
-        <Tab active={activeTab === '전환업무'} onClick={() => setActiveTab('전환업무')}>전환업무</Tab>
-        <Tab active={activeTab === '생산업무'} onClick={() => setActiveTab('생산업무')}>생산업무</Tab>
-        <Tab active={activeTab === '판매업무'} onClick={() => setActiveTab('판매업무')}>판매업무</Tab>
-        <Tab active={activeTab === '계산서업무'} onClick={() => setActiveTab('계산서업무')}>계산서업무</Tab>
-      </TabMenu>
+      <Header>
+        <TabMenu>
+          <Tab active={activeTab === '기초업무'} onClick={() => setActiveTab('기초업무')}>기초업무</Tab>
+          <Tab active={activeTab === '수주업무'} onClick={() => setActiveTab('수주업무')}>수주업무</Tab>
+          <Tab active={activeTab === '매입업무'} onClick={() => setActiveTab('매입업무')}>매입업무</Tab>
+          <Tab active={activeTab === '재고업무'} onClick={() => setActiveTab('재고업무')}>재고업무</Tab>
+          <Tab active={activeTab === '전환업무'} onClick={() => setActiveTab('전환업무')}>전환업무</Tab>
+          <Tab active={activeTab === '생산업무'} onClick={() => setActiveTab('생산업무')}>생산업무</Tab>
+          <Tab active={activeTab === '판매업무'} onClick={() => setActiveTab('판매업무')}>판매업무</Tab>
+          <Tab active={activeTab === '계산서업무'} onClick={() => setActiveTab('계산서업무')}>계산서업무</Tab>
+        </TabMenu>
+        <ButtonContainer>
+          <ActionButton onClick={() => handleAction('handleSearch')} disabled={!permissions.view}>조회</ActionButton>
+          <ActionButton onClick={() => handleAction('handleCreate')} disabled={!permissions.add}>등록</ActionButton>
+          <ActionButton onClick={() => handleAction('handleEdit')} disabled={!permissions.update}>수정</ActionButton>
+          <ActionButton onClick={() => handleAction('handleDelete')} disabled={!permissions.delete}>삭제</ActionButton>
+          <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions.view}>CSV</ActionButton>
+          <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions.view}>PDF</ActionButton>
+          <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions.view}>엑셀</ActionButton>
+        </ButtonContainer>
+      </Header>
       <ContentArea>
         <Sidebar>
           {renderSidebarItems(menuData[activeTab] || [])}
         </Sidebar>
         <MainContent>
-          {renderContent()}
+          <CardContainer>
+            {renderContent()}
+          </CardContainer>
         </MainContent>
       </ContentArea>
     </AppContainer>

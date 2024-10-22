@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Modal2 from './Modal2';
@@ -56,17 +56,15 @@ const Input = styled.input`
   width: 200px;
 `;
 
-const Button = styled.button`
-  padding: 5px 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  height: 30px;
-  &:hover {
-    background-color: #0056b3;
-  }
+const Select = styled.select`
+  padding: 5px;
+  width: 200px;
+`;
+
+const GridContainer = styled.div`
+  height: 400px;
+  width: 100%;
+  flex: 1;
 `;
 
 const ResultArea = styled.div`
@@ -123,32 +121,15 @@ const TableCell = styled.div`
   text-align: left;
 `;
 
-const Select = styled.select`
-  padding: 5px;
-  width: 200px;
-`;
-
-const GridContainer = styled.div`
-  height: 400px;
-  width: 100%;
-  flex: 1;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-left: 20px;
-`;
-
 const columnDefs = [
-  { field: 'HC11020', headerName: '거래처명', width: 150 },
-  { field: 'HC11030', headerName: '사업자번호', width: 120 },
+  { field: 'HC11020', headerName: '거래처명', width: 300 },
+  { field: 'HC11030', headerName: '사업자번호', width: 150 },
   { field: 'HC11040', headerName: '대표자', width: 100 },
   { field: 'HC11070', headerName: '담당자', width: 100 },
-  { field: 'HC11210', headerName: '전화번호', width: 120 },
+  { field: 'HC11210', headerName: '전화번호', width: 150 },
 ];
 
-const Card2 = ({ menuName }) => {
+const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
   const gridRef = useRef(null);
   const [conditions, setConditions] = useState({
     keyword: '',
@@ -161,6 +142,20 @@ const Card2 = ({ menuName }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalMode, setModalMode] = useState(null);
   const [modalTitle, setModalTitle] = useState('');
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
+
+  useEffect(() => {
+    // 여기서 실제로는 서버에서 권한 정보를 가져와야 합니다.
+    // 이 예제에서는 임시로 권한을 설정합니다.
+    const fetchPermissions = async () => {
+      // 실제 API 호출로 대체해야 합니다.
+      const response = await new Promise(resolve => setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000));
+      setPermissions(response);
+      onPermissionsChange(response);
+    };
+
+    fetchPermissions();
+  }, [onPermissionsChange]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -233,76 +228,79 @@ const Card2 = ({ menuName }) => {
     handleCloseModal();
   }, []);
 
-  const handleCreate = useCallback(() => {
-    setSelectedItem(null);
-    setModalMode('create');
-    setModalTitle('거래처 정보 등록');
-  }, []);
-
-  const handleEdit = useCallback(() => {
-    if (selectedItem) {
-      setModalMode('edit');
-      setModalTitle('거래처 정보 수정');
-    } else {
-      alert('수정할 항목을 선택해주세요.');
-    }
-  }, [selectedItem]);
-
-  const handleDelete = useCallback(() => {
-    if (selectedItem) {
-      const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
-      if (confirmDelete) {
-        setResults(prevResults => prevResults.filter(item => item.HC11010 !== selectedItem.HC11010));
-        setSelectedItem(null);
-        if (gridRef.current && gridRef.current.api) {
-          gridRef.current.api.deselectAll();
-        }
+  useImperativeHandle(ref, () => ({
+    handleSearch,
+    handleCreate: () => {
+      setSelectedItem(null);
+      setModalMode('create');
+      setModalTitle('거래처 정보 등록');
+    },
+    handleEdit: () => {
+      if (selectedItem) {
+        setModalMode('edit');
+        setModalTitle('거래처 정보 수정');
+      } else {
+        alert('수정할 항목을 선택해주세요.');
       }
-    } else {
-      alert('삭제할 항목을 선택해주세요.');
-    }
-  }, [selectedItem]);
+    },
+    handleDelete: () => {
+      if (selectedItem) {
+        const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
+        if (confirmDelete) {
+          setResults(prevResults => prevResults.filter(item => item.HC11010 !== selectedItem.HC11010));
+          setSelectedItem(null);
+          if (gridRef.current && gridRef.current.api) {
+            gridRef.current.api.deselectAll();
+          }
+        }
+      } else {
+        alert('삭제할 항목을 선택해주세요.');
+      }
+    },
+    handleExcelDownload: async () => {
+      if (gridRef.current && gridRef.current.api) {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('검색결과');
 
-  const handleExcelDownload = useCallback(async () => {
-    if (gridRef.current && gridRef.current.api) {
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('검색결과');
+        worksheet.addRow(columnDefs.map(col => col.headerName));
 
-      // 헤더 추가
-      worksheet.addRow(columnDefs.map(col => col.headerName));
-
-      // 데이터 추가
-      gridRef.current.api.forEachNode(node => {
-        worksheet.addRow(columnDefs.map(col => node.data[col.field]));
-      });
-
-      // 열 너비 설정
-      columnDefs.forEach((col, index) => {
-        worksheet.getColumn(index + 1).width = col.width / 7;
-      });
-
-      // 엑셀 파일 생성 및 다운로드
-      const buffer = await workbook.xlsx.writeBuffer();
-      saveAs(new Blob([buffer]), '검색결과.xlsx');
-    }
-  }, []);
-
-  const handlePdfDownload = useCallback(() => {
-    const gridElement = document.querySelector('.ag-theme-alpine');
-    if (gridElement) {
-      html2canvas(gridElement).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [canvas.width, canvas.height]
+        gridRef.current.api.forEachNode(node => {
+          worksheet.addRow(columnDefs.map(col => node.data[col.field]));
         });
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save('검색결과.pdf');
-      });
-    }
-  }, []);
+
+        columnDefs.forEach((col, index) => {
+          worksheet.getColumn(index + 1).width = col.width / 7;
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), '검색결과.xlsx');
+      }
+    },
+    handlePdfDownload: () => {
+      const gridElement = document.querySelector('.ag-theme-alpine');
+      if (gridElement) {
+        html2canvas(gridElement).then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+          });
+          
+          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+          pdf.save('검색결과.pdf');
+        });
+      }
+    },
+    handleCsvDownload: () => {
+      if (gridRef.current && gridRef.current.api) {
+        const params = {
+          fileName: '검색결과.csv',
+        };
+        gridRef.current.api.exportDataAsCsv(params);
+      }
+    },
+  }));
 
   return (
     <CardContainer>
@@ -339,14 +337,6 @@ const Card2 = ({ menuName }) => {
             />
           </InputGroup>
         </InputsWrapper>
-        <ButtonGroup>
-          <Button onClick={handleSearch}>조회</Button>
-          <Button onClick={handleCreate}>등록</Button>
-          <Button onClick={handleEdit}>수정</Button>
-          <Button onClick={handleDelete}>삭제</Button>
-          <Button onClick={handleExcelDownload}>엑셀</Button>
-          <Button onClick={handlePdfDownload}>PDF</Button>
-        </ButtonGroup>
       </ConditionArea>
       <ResultArea>
         {loading && <p>데이터를 불러오는 중...</p>}
@@ -380,6 +370,6 @@ const Card2 = ({ menuName }) => {
       )}
     </CardContainer>
   );
-};
+});
 
 export default Card2;
