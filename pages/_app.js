@@ -1,5 +1,23 @@
+import { useEffect, useState } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import "@/styles/globals.css";
 
-export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+function MyApp({ Component, pageProps }) {
+  const [isBrowser, setIsBrowser] = useState(false);
+
+  useEffect(() => {
+    setIsBrowser(true);
+  }, []);
+
+  if (!isBrowser) {
+    return null;
+  }
+
+  return (
+    <BrowserRouter>
+      <Component {...pageProps} />
+    </BrowserRouter>
+  );
 }
+
+export default MyApp;

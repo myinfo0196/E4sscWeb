@@ -20,7 +20,6 @@ const ModalContent = styled.div`
   overflow: hidden;
 `;
 
-
 const TitleArea = styled.div`
   background-color: #f8f9fa;
   padding: 15px 20px;
@@ -39,20 +38,20 @@ const ContentArea = styled.div`
 const InputGroup = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 `;
 
 const Label = styled.label`
-  width: 120px;
+  width: 80px;
   margin-right: 10px;
   font-weight: bold;
 `;
 
 const Input = styled.input`
   flex: 1;
-  padding: 5px;
+  padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: 4px;
 `;
 
 const ButtonGroup = styled.div`
@@ -78,7 +77,7 @@ const CancelButton = styled(Button)`
   color: white;
 `;
 
-const Modal1 = ({ item = {}, onClose, onSave, mode, title }) => {
+const w_hc01110_01 = ({ item = {}, onClose, onSave, mode, title }) => {
   const [editedItem, setEditedItem] = useState(item);
 
   useEffect(() => {
@@ -102,46 +101,46 @@ const Modal1 = ({ item = {}, onClose, onSave, mode, title }) => {
           <Title>{title}</Title>
         </TitleArea>
         <ContentArea>
-            <InputGroup>
-              <Label>사업장코드</Label>
-            <Input name="HC01010" value={editedItem.HC01010} onChange={handleChange} />
+          <InputGroup>
+            <Label>거래처명</Label>
+            <Input
+              name="HC11020"
+              value={editedItem.HC11020}
+              onChange={handleChange}
+            />
           </InputGroup>
           <InputGroup>
-            <Label>사업장명칭</Label>
-            <Input name="HC01020" value={editedItem.HC01020} onChange={handleChange} />
+            <Label>사업자No</Label>
+            <Input
+              name="HC11030"
+              value={editedItem.HC11030}
+              onChange={handleChange}
+            />
           </InputGroup>
           <InputGroup>
-            <Label>사업자등록번호</Label>
-            <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} />
+            <Label>대 표 자</Label>
+            <Input
+              name="HC11040"
+              value={editedItem.HC11040}
+              onChange={handleChange}
+            />
           </InputGroup>
           <InputGroup>
-            <Label>대표자성명</Label>
-            <Input name="HC01040" value={editedItem.HC01040} onChange={handleChange} />
+            <Label>담 당 자</Label>
+            <Input
+              name="HC11070"
+              value={editedItem.HC11070}
+              onChange={handleChange}
+            />
           </InputGroup>
           <InputGroup>
-            <Label>우편 번호</Label>
-            <Input name="HC01050" value={editedItem.HC01050} onChange={handleChange} />
+            <Label>전화번호</Label>
+            <Input
+              name="HC11210"
+              value={editedItem.HC11210}
+              onChange={handleChange}
+            />
           </InputGroup>
-          <InputGroup>
-            <Label>사업장주소</Label>
-            <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>업태</Label>
-            <Input name="HC01100" value={editedItem.HC01100} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>종목</Label>
-            <Input name="HC01090" value={editedItem.HC01090} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>전화 번호</Label>
-            <Input name="HC01110" value={editedItem.HC01110} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>FAX 번호</Label>
-            <Input name="HC01120" value={editedItem.HC01120} onChange={handleChange} />
-          </InputGroup> 
         </ContentArea>
         <ButtonGroup>
           <SaveButton onClick={handleSave}>저장</SaveButton>
@@ -152,4 +151,4 @@ const Modal1 = ({ item = {}, onClose, onSave, mode, title }) => {
   );
 };
 
-export default Modal1;
+export default w_hc01110_01;

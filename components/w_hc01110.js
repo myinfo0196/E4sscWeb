@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import Modal2 from './Modal2';
+import w_hc01110_01 from './w_hc01110_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -16,14 +16,6 @@ const CardContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-`;
-
-const MenuName = styled.h2`
-  font-size: 18px;
-  margin-bottom: 15px;
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
 `;
 
 const ConditionArea = styled.div`
@@ -74,52 +66,6 @@ const ResultArea = styled.div`
   overflow: hidden;
 `;
 
-const ResultTitle = styled.h3`
-  background-color: #f0f0f0;
-  padding: 10px;
-  margin: 0;
-  border-radius: 5px 5px 0 0;
-`;
-
-const TableContainer = styled.div`
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #ddd;
-  border-radius: 0 0 5px 5px;
-`;
-
-const TableHeader = styled.div`
-  background-color: #e0e0e0;
-  font-weight: bold;
-  padding: 10px;
-  display: flex;
-  border-bottom: 1px solid #ddd;
-`;
-
-const TableBody = styled.div`
-  flex: 1;
-  overflow-y: auto;
-`;
-
-const TableRow = styled.div`
-  display: flex;
-  border-bottom: 1px solid #ddd;
-  &:last-child {
-    border-bottom: none;
-  }
-  cursor: pointer;
-  &:hover {
-    background-color: #f5f5f5;
-  }
-`;
-
-const TableCell = styled.div`
-  flex: 1;
-  padding: 10px;
-  text-align: left;
-`;
 
 const columnDefs = [
   { field: 'HC11020', headerName: '거래처명', width: 300 },
@@ -129,12 +75,17 @@ const columnDefs = [
   { field: 'HC11210', headerName: '전화번호', width: 150 },
 ];
 
-const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
+const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDataChange }, ref) => {
   const gridRef = useRef(null);
-  const [conditions, setConditions] = useState({
-    keyword: '',
-    customerType: '1',
-    representative: '',
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
+  const [conditions, setConditions] = useState(() => {
+    // localStorage에서 이전에 저장된 조건들을 불러옵니다.
+    const savedConditions = localStorage.getItem('savedConditions');
+    return savedConditions ? JSON.parse(savedConditions) : {
+      keyword: '',
+      customerType: '1',
+      representative: '',
+    };
   });
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -142,33 +93,47 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalMode, setModalMode] = useState(null);
   const [modalTitle, setModalTitle] = useState('');
-  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
+  const [allResults, setAllResults] = useState({});
+  const [data, setData] = useState(cachedData2 || []);
 
   useEffect(() => {
-    // 여기서 실제로는 서버에서 권한 정보를 가져와야 합니다.
-    // 이 예제에서는 임시로 권한을 설정합니다.
-    const fetchPermissions = async () => {
-      // 실제 API 호출로 대체해야 합니다.
-      const response = await new Promise(resolve => setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000));
-      setPermissions(response);
-      onPermissionsChange(response);
-    };
+    if (cachedData2) {
+      setData(cachedData2);
+    }
+  }, [cachedData2]);
 
-    fetchPermissions();
-  }, [onPermissionsChange]);
+  useEffect(() => {
+    if (cachedData2) {
+      setAllResults(cachedData2);
+      setResults(Object.values(cachedData2));
+    } else {
+      // Load saved data from localStorage
+      const savedResults = localStorage.getItem('w_hc01110Results');
+      if (savedResults) {
+        const parsedResults = JSON.parse(savedResults);
+        setAllResults(parsedResults);
+        setResults(Object.values(parsedResults));
+        onDataChange(parsedResults);
+      }
+    }
+  }, [cachedData2, onDataChange]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setConditions(prev => ({ ...prev, [name]: value }));
-  };
-
-  const encodeKorean = (str) => {
-    return encodeURIComponent(str).replace(/%/g, '%25');
+    console.log(`Input changed: ${name} = ${value}`);
+    const updatedConditions = { ...conditions, [name]: value };
+    setConditions(updatedConditions);
+    
+    // 조건이 변경될 때마다 localStorage에 저장합니다.
+    localStorage.setItem('savedConditions', JSON.stringify(updatedConditions));
   };
 
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
+    // 검색 시 cachedData 삭제
+    onDataChange(null);
+    
     try {
       const params = {
         map: 'sale11010.sale11010_s',
@@ -186,17 +151,33 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
         params.sale11010_hc11040 = conditions.representative.trim();
       }
 
+      console.log('Search params:', params);
+
       const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
         params,
         paramsSerializer: params => {
           return Object.entries(params)
-            .map(([key, value]) => `${key}=${value}`)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&');
         }
       });
       
+      console.log('API response:', response.data);
+
       if (response.data && response.data.data && response.data.data.result) {
-        setResults(response.data.data.result);
+        const newResults = response.data.data.result;
+        
+        const updatedResults = {};
+        newResults.forEach(item => {
+          updatedResults[item.HC11010] = item;
+        });
+
+        setAllResults(updatedResults);
+        setResults(newResults);
+        setData(newResults);
+        onDataChange(updatedResults);
+
+        localStorage.setItem('w_hc01110Results', JSON.stringify(updatedResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
@@ -228,6 +209,24 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
     handleCloseModal();
   }, []);
 
+  const handleShowAllResults = () => {
+    setResults(Object.values(allResults));
+  };
+
+  const fetchPermissions = useCallback(async () => {
+    const response = await new Promise(resolve => 
+      setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000)
+    );
+    setPermissions(response);
+    if (onPermissionsChange) {
+      onPermissionsChange(response);
+    }
+  }, [onPermissionsChange]);
+
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
+
   useImperativeHandle(ref, () => ({
     handleSearch,
     handleCreate: () => {
@@ -247,6 +246,11 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
       if (selectedItem) {
         const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
         if (confirmDelete) {
+          setAllResults(prevAllResults => {
+            const updatedResults = { ...prevAllResults };
+            delete updatedResults[selectedItem.HC11010];
+            return updatedResults;
+          });
           setResults(prevResults => prevResults.filter(item => item.HC11010 !== selectedItem.HC11010));
           setSelectedItem(null);
           if (gridRef.current && gridRef.current.api) {
@@ -300,11 +304,12 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
         gridRef.current.api.exportDataAsCsv(params);
       }
     },
+    handleShowAllResults,
+    refetchPermissions: fetchPermissions,
   }));
 
   return (
     <CardContainer>
-      <MenuName>{menuName}</MenuName>
       <ConditionArea>
         <InputsWrapper>
           <InputGroup>
@@ -360,7 +365,7 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
         )}
       </ResultArea>
       {modalMode && (
-        <Modal2
+        <w_hc01110_01
           item={modalMode === 'create' ? {} : selectedItem}
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
@@ -372,4 +377,4 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
   );
 });
 
-export default Card2;
+export default w_hc01110;

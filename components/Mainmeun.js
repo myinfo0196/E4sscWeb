@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Routes, Route, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled'
-import Card1 from './Card1'
-import Card2 from './Card2'
+import axios from 'axios';
+import w_hc01010 from './w_hc01010'
+import w_hc01110 from './w_hc01110'
 import Card3 from './Card3'
 
 const AppContainer = styled.div`
@@ -9,6 +11,7 @@ const AppContainer = styled.div`
   flex-direction: column;
   height: 100vh;
   font-family: Arial, sans-serif;
+  cursor: ${props => props.isLoading ? 'wait' : 'default'};
 `
 
 const Header = styled.header`
@@ -97,195 +100,369 @@ const ActionButton = styled.button`
   }
 `
 
+const TabList = styled.div`
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  background-color: #f0f0f0;
+  overflow-x: auto;
+`;
+
+const TabItem = styled(NavLink)`
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+  border-right: 1px solid #ccc;
+  &.active {
+    background-color: #fff;
+    border-bottom: 2px solid #007bff;
+  }
+`;
+
+const CloseButton = styled.span`
+  margin-left: 10px;
+  font-size: 14px;
+  &:hover {
+    color: red;
+  }
+`;
+
+const menuToFileMap = {
+  'w_hc01010': 'w_hc01010',
+  'w_hc01110': 'w_hc01110',
+  'w_ac01060': 'Card3',
+};
+
 export default function MainMenu() {
-  const [activeTab, setActiveTab] = useState('기초업무')
+  const [menuData, setMenuData] = useState({ mainMenus: [], subMenus: {} });
+  const [activeMainTab, setActiveMainTab] = useState('')
+  const [openTabs, setOpenTabs] = useState([])
+  const [permissions, setPermissions] = useState({});
+  const [activeTab, setActiveTab] = useState('')
+  const [breadcrumb, setBreadcrumb] = useState([])
   const [expandedItems, setExpandedItems] = useState({})
-  const [selectedContent, setSelectedContent] = useState(null)
-  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false })
-  const cardRef = useRef(null)
+  const cardRefs = useRef({});
+  const [cachedData, setCachedData] = useState({})
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // Simulating permission fetch
-    setPermissions({ view: false, add: false, update: false, delete: false })
-  }, [])
+    fetchMenuData();
+  }, []); // 컴포넌트가 마운트될 때 한 번만 실행
+  
+  useEffect(() => {
+    const currentPath = location.pathname.split('/').pop();
+    const currentMenu = Object.keys(menuData.subMenus).find(key => key.toLowerCase() === currentPath);
+    
+    if (currentMenu) {
+      setActiveTab(currentMenu);
+      if (!openTabs.includes(currentMenu)) {
+        setOpenTabs(prev => [...prev, currentMenu]);
+      }
+      updateBreadcrumb(currentMenu);
+    } else if (openTabs.length > 0) {
+      const lastTab = openTabs[openTabs.length - 1];
+      if (lastTab) {
+        navigate(`/${lastTab.toLowerCase()}`);
+      }
+    } else {
+      navigate('/');
+    }
+  }, [location, openTabs, navigate]);
 
-  const handlePermissionsChange = useCallback((newPermissions) => {
-    setPermissions(newPermissions);
-  }, []);
+  const handleTabChange = (tab) => {
+    if (activeTab !== tab) {
+      setActiveTab(tab);
+      navigate(`/${menuToFileMap[tab].toLowerCase()}`);
+    }
+  };
+  
+  const fetchMenuData = async () => {
+    try {
+      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp?map=sale11010.menu_s&table=ssc_88_DK.dbo&buttonid=');
+      console.log('API Response:', response.data); // 전체 응답 로깅
+      const data = response.data.data ? response.data.data.result : []; // data가 undefined일 경우 빈 배열로 설정
 
-  const handleAction = useCallback((action) => {
-    if (cardRef.current && cardRef.current[action]) {
-      cardRef.current[action]()
+      if (!Array.isArray(data)) {
+        console.error('Unexpected data structure:', data);
+        return;
+      }
+  
+      const mainMenus = data.filter(item => item.module === 'parent');
+      const subMenus = data.filter(item => item.module !== 'parent').reduce((acc, item) => {
+        if (!acc[item.buttonid]) {
+          acc[item.buttonid] = [];
+        }
+        acc[item.buttonid].push(item);
+        return acc;
+      }, {});
+  
+      console.log('Processed menu data:', { mainMenus, subMenus });
+      setMenuData({ mainMenus, subMenus });
+      if (mainMenus.length > 0) {
+        setActiveMainTab(mainMenus[0].buttonid);
+      }
+    } catch (error) {
+      console.error('Error fetching menu data:', error);
     }
-  }, [])
-
-  // menuData를 컴포넌트 내부에서 정의
-  const menuData = {
-    '기초업무': [
-    {
-      name: '각종코드관리',
-      children: [
-        { name: '사업장 코드 관리' },
-        { name: '하치장 코드 관리' },
-        { name: '운송사 코드 관리' },
-        { name: '운송 차량번호 관리' },
-        { name: '품명 코드 관리' },
-        { name: '규격 약호 관리' },
-        { name: '생산 공정 관리' },
-        { name: '포장 코드 관리' },
-        { name: '결함 코드 관리' },
-        { name: '단중 계산 확인' },
-        { name: '코일 길이 계산' },
-        { name: '코일 외경 계산' },
-      ]
-    },
-    {
-      name: '거래처 관리',
-      children: [
-        { name: '거래처 코드 관리' },
-        { name: '거래처 등록 현황' },
-        { name: '거래처별 단중 관리' },
-        { name: '계좌 코드 관리' },
-      ]
-    },
-    {
-      name: '공지사항 관리',
-      children: [
-        { name: '공지사항 등록 관리' },
-        { name: '업무연락서작성관리' },
-        { name: '업무연락서발신내역' },
-        { name: '업무연락서수신내역' },
-        { name: '회 의 록 관 리' },
-        { name: '교육일지 관 리' },
-      ]
-    }
-  ],
-  '수주업무': [
-    {
-      name: '수주품의 관리',
-      children: [
-        { name: '수주품의 등록 관리' },
-        { name: '수주품의 승인 관리' },
-        { name: '수주품의 내역 조회' },
-        { name: '수주품의 종결 관리' },
-      ]
-    },
-    {
-      name: '주문구매 관리',
-      children: [
-        { name: '주문 구매 요청 관리' },
-        { name: '주문서 확정 및 종결' },
-        { name: '현대외 주문진행 관리' },
-        { name: '현대외 주문진행 삭제' },
-        { name: '출하 구매 요청 관리' },
-      ]
-    }
-  ],
-  '매입업무': [
-    {
-      name: '매입등록 관리',
-      children: [
-        { name: '매입입고 등록 관리' },
-        { name: '매입입고 등록(현대)' },
-        { name: '매입반품 등록 관리' },
-        { name: '매입단가 일괄 수정' },
-      ]
-    },
-    {
-      name: '매입현황 관리',
-      children: [
-        { name: '매 입 일 보' },
-        { name: '품명규격별매입현황' },
-        { name: '매입처,품명별 현황' },
-      ]
-    },
-    {
-      name: '매입계산서 관리',
-      children: [
-        { name: '매입계산서 등록' },
-        { name: '매입계산서 내역' },
-      ]
-    }
-  ]
   };
 
-  const toggleExpand = (itemName) => {
+  const updateBreadcrumb = useCallback((menuName) => {
+    const mainMenu = menuData.mainMenus.find(menu => 
+      menuData.subMenus[menu.buttonid]?.some(subMenu => subMenu.module === menuName)
+    );
+  
+    if (mainMenu) {
+      const subMenu = menuData.subMenus[mainMenu.buttonid].find(sub => sub.module === menuName);
+      if (subMenu) {
+        setBreadcrumb([mainMenu.remark, subMenu.remark]);
+        setActiveMainTab(mainMenu.buttonid);
+      }
+    } else {
+      setBreadcrumb([menuName]);
+    }
+  }, [menuData]);
+  const handlePermissionsChange = useCallback((menuName, newPermissions) => {
+    setPermissions(prev => ({
+      ...prev,
+      [menuName]: newPermissions
+    }));
+  }, []);
+
+  const getActiveTabPermissions = useCallback(() => {
+    return permissions[activeTab] || { view: false, add: false, update: false, delete: false };
+  }, [permissions, activeTab]);
+
+  const handleAction = useCallback((action) => {
+    console.log(`Action triggered: ${action}`); // 로그 추가
+    if (activeTab && cardRefs.current[activeTab]) {
+      const cardRef = cardRefs.current[activeTab];
+      const currentPermissions = permissions[activeTab] || {};
+      
+      if (cardRef && cardRef[action]) {
+        switch (action) {
+          case 'handleSearch':
+            if (currentPermissions.view) cardRef.handleSearch();
+            else alert('조회 권한이 없습니다.');
+            break;
+          case 'handleCreate':
+            if (currentPermissions.add) cardRef.handleCreate();
+            else alert('등록 권한이 없습니다.');
+            break;
+          case 'handleEdit':
+            if (currentPermissions.update) cardRef.handleEdit();
+            else alert('수정 권한이 없습니다.');
+            break;
+          case 'handleDelete':
+            if (currentPermissions.delete) cardRef.handleDelete();
+            else alert('삭제 권한이 없습니다.');
+            break;
+          case 'handleCsvDownload':
+          case 'handlePdfDownload':
+          case 'handleExcelDownload':
+            if (currentPermissions.view) cardRef[action]();
+            else alert('다운로드 권한이 없습니다.');
+            break;
+          default:
+            console.error(`Unknown action: ${action}`);
+            break;
+        }
+      } else {
+        console.error(`Action ${action} not found on card ref`);
+      }
+    }
+  }, [activeTab, permissions]);
+
+  const openTab = useCallback((content) => {
+    setIsLoading(true);
+    setOpenTabs(prev => {
+      if (!prev.includes(content)) {
+        return [...prev, content];
+      }
+      return prev;
+    });
+    setActiveTab(content);
+    updateBreadcrumb(content);
+    navigate(`/${content.toLowerCase()}`);
+  }, [navigate, updateBreadcrumb]);
+
+  const closeTab = useCallback((tabToClose, event) => {
+    event.stopPropagation();
+    event.preventDefault(); // 기본 동작 방지
+
+    setOpenTabs(prevTabs => {
+      const tabIndex = prevTabs.indexOf(tabToClose);
+      if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 없���
+
+      const updatedTabs = prevTabs.filter(tab => tab !== tabToClose);
+      
+      // 닫은 탭이 현재 활성 탭인 경우
+      if (activeTab === tabToClose) {
+        if (updatedTabs.length > 0) {
+          const newActiveTab = tabIndex === prevTabs.length - 1
+            ? updatedTabs[updatedTabs.length - 1] // 마지막 탭을 닫은 경우 새로운 마지막 탭으로
+            : prevTabs[tabIndex + 1]; // 그 외의 경우 다음 탭으로
+          
+          setActiveTab(newActiveTab);
+          updateBreadcrumb(newActiveTab);
+          navigate(`/${menuToFileMap[newActiveTab].toLowerCase()}`);
+        } else {
+          // 모든 탭이 닫힌 경우
+          setActiveTab('');
+          setBreadcrumb([]);
+          navigate('/');
+        }
+      } else if (updatedTabs.length === 0) {
+        // 마지막 탭을 닫았지만 활성 탭이 아닌 경우
+        setActiveTab('');
+        setBreadcrumb([]);
+        navigate('/');
+      } else {
+        // 닫은 탭이 현재 활성 탭이 아닌 경우, 현재 활성 탭의 URL로 이동
+        navigate(`/${menuToFileMap[activeTab].toLowerCase()}`);
+      }
+
+      return updatedTabs;
+    });
+  }, [activeTab, navigate, updateBreadcrumb, menuToFileMap]);
+
+  const toggleExpand = useCallback((itemName) => {
     setExpandedItems(prev => ({
       ...prev,
       [itemName]: !prev[itemName]
-    }))
-  }
+    }));
+  }, []);
 
-  const handleItemClick = (item) => {
-    if (item.children) {
-      toggleExpand(item.name)
-    } else {
-      setSelectedContent(item.name)
+  const handleDataChange = useCallback((menuName, newData) => {
+    setCachedData(prev => ({
+      ...prev,
+      [menuName]: newData
+    }));
+  }, []);
+
+  const handlew_hc01010DataChange = useCallback((newData) => {
+    setw_hc01010Data(newData);
+  }, []);
+
+  const handlew_hc01110DataChange = useCallback((newData) => {
+    setw_hc01110Data(newData);
+  }, []);
+
+  const renderSidebarItems = useCallback(() => {
+    if (!menuData.subMenus[activeMainTab]) {
+      console.log('No submenus for active main tab:', activeMainTab); // 디버깅을 위한 로그
+      return null;
     }
-  }
+  
+    return menuData.subMenus[activeMainTab].map((item) => (
+      <SidebarItem 
+        key={item.module}
+        onClick={() => openTab(item.module)}
+      >
+        {item.remark}
+      </SidebarItem>
+    ));
+  }, [menuData, activeMainTab, openTab]);
 
-  const renderSidebarItems = (items, level = 0) => {
-    return items.map((item, index) => (
-      <div key={index}>
-        <SidebarItem 
-          level={level} 
-          onClick={() => handleItemClick(item)}
-        >
-          {item.name}
-          {item.children && (
-            <ExpandIcon>{expandedItems[item.name] ? '▼' : '▶'}</ExpandIcon>
-          )}
-        </SidebarItem>
-        {item.children && expandedItems[item.name] && renderSidebarItems(item.children, level + 1)}
-      </div>
-    ))
-  }
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500); // 500ms 후에 로딩 상태 해제
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
-  const renderContent = useCallback(() => {
-    switch (selectedContent) {
-      case '사업장 코드 관리':
-        return <Card1 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
-      case '거래처 코드 관리':
-        return <Card2 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
-      case '품명 코드 관리':
-        return <Card3 ref={cardRef} menuName={selectedContent} onPermissionsChange={handlePermissionsChange} />;
+  console.log('Active Tab:', activeTab);
+  console.log('Permissions:', permissions);
+  console.log('Active Tab Permissions:', getActiveTabPermissions());
+
+  const renderContent = () => {
+    let CardComponent = null;
+    switch (activeTab) {
+      case 'w_hc01010':
+        CardComponent = w_hc01010;
+        break;
+      case 'w_hc01110':
+        CardComponent = w_hc01110;
+        break;
+      case 'w_ac01060':
+        CardComponent = Card3;
+        break;
       default:
-        return selectedContent ? (
-          <p>선택된 메뉴: {selectedContent}</p>
-        ) : (
-          <p>왼쪽 사이드바에서 메뉴를 선택해주세요.</p>
-        );
+        return <div>왼쪽 사이드바에서 메뉴를 선택해주세요.</div>;
     }
-  }, [selectedContent, handlePermissionsChange]);
+
+    return (
+      <CardComponent 
+        ref={el => cardRefs.current[activeTab] = el}
+        onDataChange={(newData) => handleDataChange(activeTab, newData)}
+        cachedData={cachedData[activeTab]}
+        onPermissionsChange={(newPermissions) => handlePermissionsChange(activeTab, newPermissions)}
+      />
+    );
+  };
+
+  useEffect(() => {
+    // 탭이 변경될 때마다 해당 컴포넌트의 권한을 다시 가져옵니다.
+    if (activeTab && cardRefs.current[activeTab] && cardRefs.current[activeTab].current) {
+      const currentCard = cardRefs.current[activeTab].current;
+      if (typeof currentCard.refetchPermissions === 'function') {
+        currentCard.refetchPermissions();
+      }
+    }
+  }, [activeTab]);
 
   return (
-    <AppContainer>
+    <AppContainer isLoading={isLoading}>
       <Header>
         <TabMenu>
-          <Tab active={activeTab === '기초업무'} onClick={() => setActiveTab('기초업무')}>기초업무</Tab>
-          <Tab active={activeTab === '수주업무'} onClick={() => setActiveTab('수주업무')}>수주업무</Tab>
-          <Tab active={activeTab === '매입업무'} onClick={() => setActiveTab('매입업무')}>매입업무</Tab>
-          <Tab active={activeTab === '재고업무'} onClick={() => setActiveTab('재고업무')}>재고업무</Tab>
-          <Tab active={activeTab === '전환업무'} onClick={() => setActiveTab('전환업무')}>전환업무</Tab>
-          <Tab active={activeTab === '생산업무'} onClick={() => setActiveTab('생산업무')}>생산업무</Tab>
-          <Tab active={activeTab === '판매업무'} onClick={() => setActiveTab('판매업무')}>판매업무</Tab>
-          <Tab active={activeTab === '계산서업무'} onClick={() => setActiveTab('계산서업무')}>계산서업무</Tab>
+          {menuData.mainMenus.map(mainMenu => (
+            <Tab 
+              key={mainMenu.buttonid}
+              active={activeMainTab === mainMenu.buttonid} 
+              onClick={() => setActiveMainTab(mainMenu.buttonid)}
+            >
+              {mainMenu.remark}
+            </Tab>
+          ))}
         </TabMenu>
         <ButtonContainer>
-          <ActionButton onClick={() => handleAction('handleSearch')} disabled={!permissions.view}>조회</ActionButton>
-          <ActionButton onClick={() => handleAction('handleCreate')} disabled={!permissions.add}>등록</ActionButton>
-          <ActionButton onClick={() => handleAction('handleEdit')} disabled={!permissions.update}>수정</ActionButton>
-          <ActionButton onClick={() => handleAction('handleDelete')} disabled={!permissions.delete}>삭제</ActionButton>
-          <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions.view}>CSV</ActionButton>
-          <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions.view}>PDF</ActionButton>
-          <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions.view}>엑셀</ActionButton>
+          <ActionButton onClick={() => handleAction('handleSearch')} disabled={!permissions[activeTab]?.view}>조회</ActionButton>
+          <ActionButton onClick={() => handleAction('handleCreate')} disabled={!permissions[activeTab]?.add}>등록</ActionButton>
+          <ActionButton onClick={() => handleAction('handleEdit')} disabled={!permissions[activeTab]?.update}>수정</ActionButton>
+          <ActionButton onClick={() => handleAction('handleDelete')} disabled={!permissions[activeTab]?.delete}>삭제</ActionButton>
+          <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions[activeTab]?.view}>CSV</ActionButton>
+          <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions[activeTab]?.view}>PDF</ActionButton>
+          <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions[activeTab]?.view}>엑셀</ActionButton>
         </ButtonContainer>
       </Header>
       <ContentArea>
         <Sidebar>
-          {renderSidebarItems(menuData[activeTab] || [])}
+          {renderSidebarItems()}
         </Sidebar>
         <MainContent>
+          <Breadcrumb>
+            {breadcrumb.map((item, index) => (
+              <React.Fragment key={item}>
+                {index > 0 && <span> &gt; </span>}
+                <BreadcrumbItem>{item}</BreadcrumbItem>
+              </React.Fragment>
+            ))}
+          </Breadcrumb>
+          <TabList>
+            {openTabs.map(tab => (
+              <TabItem
+                key={tab}
+                to={`/${tab.toLowerCase()}`}
+                onClick={() => handleTabChange(tab)}
+                className={activeTab === tab ? 'active' : ''}
+              >
+                {menuData.subMenus[activeMainTab]?.find(item => item.module === tab)?.remark || tab}
+                <CloseButton onClick={(e) => closeTab(tab, e)}>×</CloseButton>
+              </TabItem>              
+            ))}
+          </TabList>
           <CardContainer>
             {renderContent()}
           </CardContainer>
@@ -294,3 +471,25 @@ export default function MainMenu() {
     </AppContainer>
   )
 }
+
+const Breadcrumb = styled.div`
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #e0e0e0;
+`;
+
+const BreadcrumbItem = styled.span`
+  color: #333;
+  &:last-child {
+    font-weight: bold;
+  }
+`;
+
+const LoadingIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 1.2em;
+  color: #666;
+`;
