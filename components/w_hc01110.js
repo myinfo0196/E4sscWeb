@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import w_hc01110_01 from './w_hc01110_01';
+import W_HC01110_01 from './w_hc01110_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -77,7 +77,6 @@ const columnDefs = [
 
 const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDataChange }, ref) => {
   const gridRef = useRef(null);
-  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
   const [conditions, setConditions] = useState(() => {
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
     const savedConditions = localStorage.getItem('savedConditions');
@@ -91,16 +90,18 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [modalMode, setModalMode] = useState(null);
-  const [modalTitle, setModalTitle] = useState('');
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData2 || []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState(null);
+  const [modalTitle, setModalTitle] = useState('');
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
 
   useEffect(() => {
     if (cachedData2) {
       setData(cachedData2);
     }
-  }, [cachedData2]);
+  }, [cachedData2]); // cachedData2가 변경될 때만 실행
 
   useEffect(() => {
     if (cachedData2) {
@@ -113,10 +114,10 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         const parsedResults = JSON.parse(savedResults);
         setAllResults(parsedResults);
         setResults(Object.values(parsedResults));
-        onDataChange(parsedResults);
+        onDataChange(parsedResults); // Ensure this does not cause a re-render loop
       }
     }
-  }, [cachedData2, onDataChange]);
+  }, [cachedData2]); // onDataChange를 의존성 배열에서 제거
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -132,13 +133,14 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     setLoading(true);
     setError(null);
     // 검색 시 cachedData 삭제
-    onDataChange(null);
+    setData([]); // Reset cachedData to an empty array
+    onDataChange(null); // Ensure this does not cause a re-render loop
     
     try {
       const params = {
         map: 'sale11010.sale11010_s',
         limit: 100,
-        table: 'ssc_88_DK.dbo',
+        table: 'ssc_00_demo.dbo',
         start: 1,
         sale11010_hc11011: conditions.customerType,
       };
@@ -157,7 +159,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         params,
         paramsSerializer: params => {
           return Object.entries(params)
-            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .map(([key, value]) => `${key}=${value}`)
             .join('&');
         }
       });
@@ -167,13 +169,14 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
         
+        // Ensure newResults is an array of objects with keys matching columnDefs
         const updatedResults = {};
         newResults.forEach(item => {
-          updatedResults[item.HC11010] = item;
+          updatedResults[item.HC11010] = item; // Ensure HC11010 is unique
         });
 
         setAllResults(updatedResults);
-        setResults(newResults);
+        setResults(newResults); // Ensure newResults is in the correct format
         setData(newResults);
         onDataChange(updatedResults);
 
@@ -190,7 +193,15 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   };
 
   const handleRowClick = useCallback((event) => {
-    setSelectedItem(event.data);
+    setSelectedItem(event.data); // Set the selected item when the row is clicked
+  }, []);
+
+  const handleRowSelected = useCallback((event) => {
+    if (event.node.isSelected()) {
+      setSelectedItem(event.data); // Set the selected item when the row is selected
+    } else {
+      setSelectedItem(null); // Clear the selected item if the row is deselected
+    }
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -209,13 +220,15 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     handleCloseModal();
   }, []);
 
-  const handleShowAllResults = () => {
-    setResults(Object.values(allResults));
-  };
+  //const handleShowAllResults = () => {
+  //  setResults(Object.values(allResults));
+  //};
 
   const fetchPermissions = useCallback(async () => {
     const response = await new Promise(resolve => 
-      setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000)
+      { const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000);
+        return () => clearTimeout(timer);
+      }
     );
     setPermissions(response);
     if (onPermissionsChange) {
@@ -230,27 +243,30 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   useImperativeHandle(ref, () => ({
     handleSearch,
     handleCreate: () => {
-      setSelectedItem(null);
-      setModalMode('create');
-      setModalTitle('거래처 정보 등록');
+      alert("등록");
+      setSelectedItem(null); // Clear selected item for new entry
+      setIsModalOpen(true);
+      setModalMode('create'); // Set modal mode to create
+      setModalTitle('거래처 정보 등록'); // Set modal title for create
     },
     handleEdit: () => {
       if (selectedItem) {
-        setModalMode('edit');
-        setModalTitle('거래처 정보 수정');
+        setIsModalOpen(true);
+        setModalMode('edit'); // Set modal mode to edit
+        setModalTitle('거래처 정보 수정'); // Set modal title for edit
       } else {
-        alert('수정할 항목을 선택해주세요.');
+        alert('수정할 항목을 선택해주세요.'); // Alert if no item is selected
       }
     },
     handleDelete: () => {
       if (selectedItem) {
         const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
         if (confirmDelete) {
-          setAllResults(prevAllResults => {
-            const updatedResults = { ...prevAllResults };
-            delete updatedResults[selectedItem.HC11010];
-            return updatedResults;
-          });
+          //setAllResults(prevAllResults => {
+          //  const updatedResults = { ...prevAllResults };
+          //  delete updatedResults[selectedItem.HC11010];
+          //  return updatedResults;
+          //});
           setResults(prevResults => prevResults.filter(item => item.HC11010 !== selectedItem.HC11010));
           setSelectedItem(null);
           if (gridRef.current && gridRef.current.api) {
@@ -304,8 +320,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         gridRef.current.api.exportDataAsCsv(params);
       }
     },
-    handleShowAllResults,
-    refetchPermissions: fetchPermissions,
+    //handleShowAllResults,
+    //refetchPermissions: fetchPermissions,
   }));
 
   return (
@@ -353,8 +369,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              rowSelection="single"
-              suppressRowDeselection={true}
+              rowSelection='single' // Updated to use object format
+              suppressRowClickSelection={false} // 체크박스 제거
               defaultColDef={{
                 sortable: true,
                 filter: true,
@@ -365,8 +381,9 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         )}
       </ResultArea>
       {modalMode && (
-        <w_hc01110_01
+        <W_HC01110_01
           item={modalMode === 'create' ? {} : selectedItem}
+          isOpen={isModalOpen} 
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
           mode={modalMode}

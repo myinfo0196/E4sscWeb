@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import "@/styles/globals.css";
 
-function MyApp({ Component, pageProps }) {
+function E4SSCApp({ Component, pageProps }) {
   const [isBrowser, setIsBrowser] = useState(false);
 
   useEffect(() => {
@@ -20,4 +20,4 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
-export default MyApp;
+export default E4SSCApp;

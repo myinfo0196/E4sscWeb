@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import W_HC01010_01 from './w_hc01010_01';
+import W_AC01040_01 from './w_ac01040_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -61,22 +61,22 @@ const GridContainer = styled.div`
 
 // columnDefs를 컴포넌트 외부로 이동
 const columnDefs = [
-  { field: 'HC01010', headerName: '코드', width: 80 },
-  { field: 'HC01030', headerName: '사업자등록번호', width: 150 },
-  { field: 'HC01020', headerName: '상호', width: 200 },
-  { field: 'HC01040', headerName: '대표자', width: 100 },
-  { field: 'HC01100', headerName: '업태', width: 300 },
-  { field: 'HC01090', headerName: '업종', width: 300 }
+  { field: 'F04010', headerName: '코드', width: 80 },
+  { field: 'F04030', headerName: '사업자등록번호', width: 150 },
+  { field: 'F04020', headerName: '상호', width: 200 },
+  { field: 'F04040', headerName: '대표자', width: 100 },
+  { field: 'F04100', headerName: '업태', width: 300 },
+  { field: 'F04090', headerName: '업종', width: 300 }
 ];
 
-const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
+const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
   const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
   const [conditions, setConditions] = useState(() => {
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
     const savedConditions = localStorage.getItem('savedConditions');
     return savedConditions ? JSON.parse(savedConditions) : {
-      businessPlace: '',
+      includeDiscarded: '',
     };
   });
   const [results, setResults] = useState([]);
@@ -90,12 +90,9 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   const fetchPermissions = useCallback(async () => {
     // 실제 API 호출을 모방한 Promise
-    const response = await new Promise(resolve => {
-      const timer =setTimeout(() => resolve({ view: true, add: true, update: true, delete: false }), 1000); 
-      return () => clearTimeout(timer);
-      }
+    const response = await new Promise(resolve => 
+      setTimeout(() => resolve({ view: true, add: true, update: true, delete: false }), 1000)
     );
-
     setPermissions(response);
     if (onPermissionsChange) {
       onPermissionsChange(response);
@@ -119,7 +116,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       setResults(Object.values(cachedData1));
     } else {
       // Load saved data from localStorage
-      const savedResults = localStorage.getItem('w_hc01010Results');
+      const savedResults = localStorage.getItem('w_ac01040Results');
       if (savedResults) {
         const parsedResults = JSON.parse(savedResults);
         setAllResults(parsedResults);
@@ -129,17 +126,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         }
       }
     }
-  }, [cachedData1]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`);
-    const updatedConditions = { ...conditions, [name]: value };
-    setConditions(updatedConditions);
-    
-    // 조건이 변경될 때마다 localStorage에 저장합니다.
-    localStorage.setItem('savedConditions', JSON.stringify(updatedConditions));
-  };
+  }, [cachedData1, onDataChange]);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -149,9 +136,9 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
     try {
       const params = {
-        map: 'sale11010.sale11020_s',
+        map: 'sale11010.sale11030_s',
         table: 'ssc_00_demo.dbo',
-        sale11020_hc01010: conditions?.businessPlace || '',
+        sale11020_ac01040: conditions.includeDiscarded ? 'Y' : 'N', // Update to use checkbox value
       };
 
       const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
@@ -170,7 +157,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         
         const updatedResults = { ...allResults };
         newResults.forEach(item => {
-          updatedResults[item.HC01010] = item;
+          updatedResults[item.F04010] = item;
         });
 
         setAllResults(updatedResults);
@@ -180,7 +167,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           onDataChange(updatedResults);
         }
 
-        localStorage.setItem('w_hc01010Results', JSON.stringify(updatedResults));
+        localStorage.setItem('w_ac01040Results', JSON.stringify(updatedResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
@@ -228,7 +215,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       if (permissions.add) {
         setSelectedItem(null);
         setModalMode('create');
-        setModalTitle('사업장 정보 등록');
+        setModalTitle('계좌코드 정보 등록');
       } else {
         alert('등록 권한이 없습니다.');
       }
@@ -237,7 +224,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       if (permissions.update) {
         if (selectedItem) {
           setModalMode('edit');
-          setModalTitle('사업장 정보 수정');
+          setModalTitle('계좌코드 정보 수정');
         } else {
           alert('수정할 항목을 선택해주세요.');
         }
@@ -248,14 +235,14 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleDelete: () => {
       if (permissions.delete) {
         if (selectedItem) {
-          const confirmDelete = window.confirm('선택한 사업장을 삭제하시겠습니까?');
+          const confirmDelete = window.confirm('선택한 계좌코드를 삭제하시겠습니까?');
           if (confirmDelete) {
             setAllResults(prevAllResults => {
               const updatedResults = { ...prevAllResults };
-              delete updatedResults[selectedItem.HC01010];
+              delete updatedResults[selectedItem.F04010];
               return updatedResults;
             });
-            setResults(prevResults => prevResults.filter(item => item.HC01010 !== selectedItem.HC01010));
+            setResults(prevResults => prevResults.filter(item => item.F04010 !== selectedItem.F04010));
             setSelectedItem(null);
             if (gridRef.current && gridRef.current.api) {
               gridRef.current.api.deselectAll();
@@ -322,12 +309,17 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     <CardContainer>
       <ConditionArea>
         <InputGroup>
-          <Label>사업장:</Label>
+          <Label>폐기건 포함:</Label>
           <Input
-            type="text"
-            name="businessPlace"
-            value={conditions?.businessPlace || ''}
-            onChange={handleInputChange}
+            type="checkbox"
+            name="includeDiscarded"
+            checked={conditions.includeDiscarded || false}
+            onChange={(e) => {
+              const updatedConditions = { ...conditions, includeDiscarded: e.target.checked };
+              setConditions(updatedConditions);
+              // Save updated conditions to localStorage
+              localStorage.setItem('savedConditions', JSON.stringify(updatedConditions));
+            }}
           />
         </InputGroup>
       </ConditionArea>
@@ -353,7 +345,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         )}
       </ResultArea>
       {modalMode && (
-        <W_HC01010_01
+        <W_AC01040_01
           item={modalMode === 'create' ? {} : selectedItem}
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
@@ -365,4 +357,4 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   );
 });
 
-export default w_hc01010;
+export default w_ac01040;

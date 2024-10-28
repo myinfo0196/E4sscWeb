@@ -4,7 +4,8 @@ import styled from '@emotion/styled'
 import axios from 'axios';
 import w_hc01010 from './w_hc01010'
 import w_hc01110 from './w_hc01110'
-import Card3 from './Card3'
+import w_ac01040 from './w_ac01040'
+import card2 from './Card2';
 
 const AppContainer = styled.div`
   display: flex;
@@ -126,11 +127,27 @@ const CloseButton = styled.span`
   }
 `;
 
-const menuToFileMap = {
-  'w_hc01010': 'w_hc01010',
-  'w_hc01110': 'w_hc01110',
-  'w_ac01060': 'Card3',
-};
+const Breadcrumb = styled.div`
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #e0e0e0;
+`;
+
+const BreadcrumbItem = styled.span`
+  color: #333;
+  &:last-child {
+    font-weight: bold;
+  }
+`;
+
+const LoadingIndicator = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 1.2em;
+  color: #666;
+`;
 
 export default function MainMenu() {
   const [menuData, setMenuData] = useState({ mainMenus: [], subMenus: {} });
@@ -156,9 +173,12 @@ export default function MainMenu() {
     
     if (currentMenu) {
       setActiveTab(currentMenu);
-      if (!openTabs.includes(currentMenu)) {
-        setOpenTabs(prev => [...prev, currentMenu]);
-      }
+      setOpenTabs(prev => {
+        if (!prev.includes(currentMenu)) {
+          return [...prev, currentMenu];
+        }
+        return prev; // 같은 탭을 다시 추가하지 않도록 방지
+      });
       updateBreadcrumb(currentMenu);
     } else if (openTabs.length > 0) {
       const lastTab = openTabs[openTabs.length - 1];
@@ -168,18 +188,18 @@ export default function MainMenu() {
     } else {
       navigate('/');
     }
-  }, [location, openTabs, navigate]);
+  }, [location.pathname, menuData.subMenus]); // 이 효과가 필요한 경우에만 실행되도록 보장
 
   const handleTabChange = (tab) => {
     if (activeTab !== tab) {
       setActiveTab(tab);
-      navigate(`/${menuToFileMap[tab].toLowerCase()}`);
+      navigate(`/${tab.toLowerCase()}`); // menuToFileMap 사용하지 않고 직접 tab 사용
     }
   };
   
   const fetchMenuData = async () => {
     try {
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp?map=sale11010.menu_s&table=ssc_88_DK.dbo&buttonid=');
+      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp?map=sale11010.menu_s&table=ssc_00_demo.dbo&buttonid=');
       console.log('API Response:', response.data); // 전체 응답 로깅
       const data = response.data.data ? response.data.data.result : []; // data가 undefined일 경우 빈 배열로 설정
 
@@ -292,7 +312,7 @@ export default function MainMenu() {
 
     setOpenTabs(prevTabs => {
       const tabIndex = prevTabs.indexOf(tabToClose);
-      if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 없���
+      if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 없음
 
       const updatedTabs = prevTabs.filter(tab => tab !== tabToClose);
       
@@ -305,7 +325,7 @@ export default function MainMenu() {
           
           setActiveTab(newActiveTab);
           updateBreadcrumb(newActiveTab);
-          navigate(`/${menuToFileMap[newActiveTab].toLowerCase()}`);
+          navigate(`/${newActiveTab.toLowerCase()}`); // menuToFileMap 사용하지 않고 직접 tab 사용
         } else {
           // 모든 탭이 닫힌 경우
           setActiveTab('');
@@ -319,33 +339,18 @@ export default function MainMenu() {
         navigate('/');
       } else {
         // 닫은 탭이 현재 활성 탭이 아닌 경우, 현재 활성 탭의 URL로 이동
-        navigate(`/${menuToFileMap[activeTab].toLowerCase()}`);
+        navigate(`/${activeTab.toLowerCase()}`); // menuToFileMap 사용하지 않고 직접 activeTab 사용
       }
 
       return updatedTabs;
     });
-  }, [activeTab, navigate, updateBreadcrumb, menuToFileMap]);
-
-  const toggleExpand = useCallback((itemName) => {
-    setExpandedItems(prev => ({
-      ...prev,
-      [itemName]: !prev[itemName]
-    }));
-  }, []);
+  }, [activeTab, navigate, updateBreadcrumb]);
 
   const handleDataChange = useCallback((menuName, newData) => {
     setCachedData(prev => ({
       ...prev,
       [menuName]: newData
     }));
-  }, []);
-
-  const handlew_hc01010DataChange = useCallback((newData) => {
-    setw_hc01010Data(newData);
-  }, []);
-
-  const handlew_hc01110DataChange = useCallback((newData) => {
-    setw_hc01110Data(newData);
   }, []);
 
   const renderSidebarItems = useCallback(() => {
@@ -373,6 +378,7 @@ export default function MainMenu() {
     }
   }, [isLoading]);
 
+
   console.log('Active Tab:', activeTab);
   console.log('Permissions:', permissions);
   console.log('Active Tab Permissions:', getActiveTabPermissions());
@@ -386,8 +392,11 @@ export default function MainMenu() {
       case 'w_hc01110':
         CardComponent = w_hc01110;
         break;
-      case 'w_ac01060':
-        CardComponent = Card3;
+      case 'w_ac01040':
+        CardComponent = w_ac01040;
+        break;
+      case 'card2':
+        CardComponent = card2; // Ensure card2 is correctly assigned
         break;
       default:
         return <div>왼쪽 사이드바에서 메뉴를 선택해주세요.</div>;
@@ -412,6 +421,18 @@ export default function MainMenu() {
       }
     }
   }, [activeTab]);
+
+  const renderBreadcrumb = () => {
+    return (
+      <Breadcrumb>
+        {breadcrumb.map((item, index) => (
+          <BreadcrumbItem key={index}>
+            {item}{index < breadcrumb.length - 1 && ' > '}
+          </BreadcrumbItem>
+        ))}
+      </Breadcrumb>
+    );
+  };
 
   return (
     <AppContainer isLoading={isLoading}>
@@ -442,14 +463,6 @@ export default function MainMenu() {
           {renderSidebarItems()}
         </Sidebar>
         <MainContent>
-          <Breadcrumb>
-            {breadcrumb.map((item, index) => (
-              <React.Fragment key={item}>
-                {index > 0 && <span> &gt; </span>}
-                <BreadcrumbItem>{item}</BreadcrumbItem>
-              </React.Fragment>
-            ))}
-          </Breadcrumb>
           <TabList>
             {openTabs.map(tab => (
               <TabItem
@@ -471,25 +484,3 @@ export default function MainMenu() {
     </AppContainer>
   )
 }
-
-const Breadcrumb = styled.div`
-  padding: 10px;
-  background-color: #f8f8f8;
-  border-bottom: 1px solid #e0e0e0;
-`;
-
-const BreadcrumbItem = styled.span`
-  color: #333;
-  &:last-child {
-    font-weight: bold;
-  }
-`;
-
-const LoadingIndicator = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  font-size: 1.2em;
-  color: #666;
-`;
