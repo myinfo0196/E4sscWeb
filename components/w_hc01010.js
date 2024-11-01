@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import W_HC01010_01 from './w_hc01010_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -104,7 +104,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   useEffect(() => {
     fetchPermissions();
-  }, [fetchPermissions]);
+  }, []);
 
   useEffect(() => {
     if (cachedData1) {
@@ -149,12 +149,12 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
     try {
       const params = {
-        map: 'sale11010.sale11020_s',
+        map: 'cd01.cd01010_s',
         table: 'ssc_00_demo.dbo',
         sale11020_hc01010: conditions?.businessPlace || '',
       };
 
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+      const response = await axiosInstance.get('comm.jsp', { 
         params,
         paramsSerializer: params => {
           return Object.entries(params)
@@ -322,13 +322,15 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     <CardContainer>
       <ConditionArea>
         <InputGroup>
-          <Label>사업장:</Label>
-          <Input
-            type="text"
-            name="businessPlace"
-            value={conditions?.businessPlace || ''}
-            onChange={handleInputChange}
-          />
+          <Label>
+            사업장:
+            <Input
+              type="text"
+              name="businessPlace"
+              value={conditions?.businessPlace || ''}
+              onChange={handleInputChange}
+            />
+          </Label>
         </InputGroup>
       </ConditionArea>
       <ResultArea>

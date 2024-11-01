@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import W_HC01110_01 from './w_hc01110_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -138,7 +138,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     
     try {
       const params = {
-        map: 'sale11010.sale11010_s',
+        map: 'cd01.cd01110_s',
         limit: 100,
         table: 'ssc_00_demo.dbo',
         start: 1,
@@ -155,7 +155,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
 
       console.log('Search params:', params);
 
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+      const response = await axiosInstance.get('comm.jsp', { 
         params,
         paramsSerializer: params => {
           return Object.entries(params)
@@ -238,7 +238,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
 
   useEffect(() => {
     fetchPermissions();
-  }, [fetchPermissions]);
+  }, []);
 
   useImperativeHandle(ref, () => ({
     handleSearch,

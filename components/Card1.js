@@ -160,7 +160,7 @@ const Card1 = forwardRef(({ menuName, onPermissionsChange }, ref) => {
     };
 
     fetchPermissions();
-  }, [onPermissionsChange]);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

@@ -199,7 +199,20 @@ export default function MainMenu() {
   
   const fetchMenuData = async () => {
     try {
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp?map=sale11010.menu_s&table=ssc_00_demo.dbo&buttonid=');
+      const params = {
+        map: 'comm.menu_s',
+        table: 'ssc_00_demo.dbo',
+        buttonid: '',
+      };
+
+      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+        params,
+        paramsSerializer: params => {
+          return Object.entries(params)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join('&');
+        }
+      });
       console.log('API Response:', response.data); // 전체 응답 로깅
       const data = response.data.data ? response.data.data.result : []; // data가 undefined일 경우 빈 배열로 설정
 
