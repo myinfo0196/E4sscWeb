@@ -123,7 +123,7 @@ const w_ac01040_01 = ({ item = {}, onClose, onSave, mode, title }) => {
 
       if (mode === 'edit') {
         // 수정 시에는 Key(F04010)와 변경된 필드만 전송
-        params.map = 'cd01.ac01040_upt';
+        params.map = 'cd01.ac01040_u';
         params.F04010 = item.F04010; // Key는 필수
         params.F04210 = 'SMIS';     
         
@@ -150,7 +150,7 @@ const w_ac01040_01 = ({ item = {}, onClose, onSave, mode, title }) => {
 
       } else {
         // 등록 시에는 모든 필드 전송
-        params.map = 'cd01.ac01040_ins';
+        params.map = 'cd01.ac01040_i';
         params = {
           ...params,
           F04010: editedItem.F04010 || '',

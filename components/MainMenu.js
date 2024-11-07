@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled'
-import axios from 'axios';
+import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import w_hc01010 from './w_hc01010'
 import w_hc01110 from './w_hc01110'
 import w_ac01040 from './w_ac01040'
@@ -149,7 +149,7 @@ const LoadingIndicator = styled.div`
   color: #666;
 `;
 
-export default function MainMenu() {
+const MainMenu = () => {
   const [menuData, setMenuData] = useState({ mainMenus: [], subMenus: {} });
   const [activeMainTab, setActiveMainTab] = useState('')
   const [openTabs, setOpenTabs] = useState([])
@@ -205,7 +205,7 @@ export default function MainMenu() {
         buttonid: '',
       };
 
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+      const response = await axiosInstance.get('comm.jsp', {
         params,
         paramsSerializer: params => {
           return Object.entries(params)
@@ -289,6 +289,10 @@ export default function MainMenu() {
           case 'handleDelete':
             if (currentPermissions.delete) cardRef.handleDelete();
             else alert('삭제 권한이 없습니다.');
+            break;
+          case 'handlePrint':
+            if (currentPermissions.print) cardRef.handlePrint();
+            else alert('출력 권한이 없습니다.');
             break;
           case 'handleCsvDownload':
           case 'handlePdfDownload':
@@ -466,9 +470,10 @@ export default function MainMenu() {
           <ActionButton onClick={() => handleAction('handleCreate')} disabled={!permissions[activeTab]?.add}>등록</ActionButton>
           <ActionButton onClick={() => handleAction('handleEdit')} disabled={!permissions[activeTab]?.update}>수정</ActionButton>
           <ActionButton onClick={() => handleAction('handleDelete')} disabled={!permissions[activeTab]?.delete}>삭제</ActionButton>
-          <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions[activeTab]?.view}>CSV</ActionButton>
-          <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions[activeTab]?.view}>PDF</ActionButton>
-          <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions[activeTab]?.view}>엑셀</ActionButton>
+          <ActionButton onClick={() => handleAction('handlePrint')} disabled={!permissions[activeTab]?.print}>출력</ActionButton>
+          <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions[activeTab]?.print}>CSV</ActionButton>
+          <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions[activeTab]?.print}>PDF</ActionButton>
+          <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions[activeTab]?.print}>엑셀</ActionButton>
         </ButtonContainer>
       </Header>
       <ContentArea>
@@ -497,3 +502,5 @@ export default function MainMenu() {
     </AppContainer>
   )
 }
+
+export default MainMenu;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 
 const ModalBackground = styled.div`
   position: fixed;
@@ -16,7 +17,8 @@ const ModalBackground = styled.div`
 const ModalContent = styled.div`
   background-color: white;
   border-radius: 8px;
-  width: 400px;
+  width: 700px;
+  max-width: 90%;
   overflow: hidden;
 `;
 
@@ -38,11 +40,11 @@ const ContentArea = styled.div`
 const InputGroup = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 `;
 
 const Label = styled.label`
-  width: 80px;
+  width: 120px;
   margin-right: 10px;
   font-weight: bold;
 `;
@@ -52,6 +54,7 @@ const Input = styled.input`
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 14px;
 `;
 
 const ButtonGroup = styled.div`
@@ -78,28 +81,113 @@ const CancelButton = styled(Button)`
 `;
 
 const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
-  // 모달 열기 상태 관리
-  const [isModalOpen, setIsModalOpen] = useState(isOpen);
-
-  // isOpen이 변경될 때만 상태 업데이트
-  useEffect(() => {
-    setIsModalOpen(isOpen);
-  }, [isOpen]);
-
   const [editedItem, setEditedItem] = useState(item);
 
   useEffect(() => {
-    setEditedItem(item);
-  }, [item]);
+    const fetchData = async () => {
+      try {
+        const params = { 
+          map: 'cd01.hc01110_s1', 
+          table: 'ssc_00_demo.dbo', 
+          f04010: item.F04010 
+        };
+        const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
+          params,
+          paramsSerializer: params => {
+            return Object.entries(params)
+              .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+              .join('&');
+          }
+        });
+        setEditedItem(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    if (item.HC11010) {
+      fetchData();
+    }
+  }, [item.HC11010]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedItem(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    onSave(editedItem);
-    onClose();
+  const handleSave = async () => {
+    try {
+      let params = {
+        table: 'ssc_00_demo.dbo'
+      };
+
+      if (mode === 'edit') {
+        // 수정 시에는 Key(F04010)와 변경된 필드만 전송
+        params.map = 'cd01.cd01110_u';
+        params.HC11010 = item.HC11010; // Key는 필수
+        params.HC11420 = 'SMIS';     
+        
+        // 원본 item과 비교하여 변경된 필드만 params에 추가
+        Object.keys(editedItem).forEach(key => {
+          if (item[key] !== editedItem[key]) {
+            params[key] = editedItem[key];
+          }
+        });
+
+        let jsp = 'comm_update.jsp';
+        const response = await axiosInstance.post(jsp, params);
+        
+        if (response.data && response.data.data && response.data.data.result > 0) {
+          // 수정된 데이터를 parent에 반영
+          onSave({
+            ...item,
+            ...editedItem
+          });
+          onClose();
+        } else {
+          throw new Error('데이터 수정에 실패했습니다');
+        }
+
+      } else {
+        // 등록 시에는 모든 필드 전송
+        params.map = 'cd01.cd01110_i';
+        params = {
+          ...params,
+          HC11010: editedItem.HC11010 || '',
+          HC11020: editedItem.HC11020 || '',
+          HC11030: editedItem.HC11030 || '',
+          HC11040: editedItem.HC11040 || '',
+          HC11070: editedItem.HC11070 || '',
+          HC11210: editedItem.HC11210 || '',
+          HC11440: 'SMIS'
+        };
+
+        let jsp = 'comm_insert.jsp';
+        const response = await axiosInstance.post(jsp, params);
+
+        if (response.data && response.data.data && response.data.data.result > 0) {
+          // 새로 등록된 데이터를 parent에 추가
+          onSave({
+            ...editedItem,
+            HC11010: editedItem.HC11010,
+            isNew: true
+          });
+          onClose();
+        } else {
+          throw new Error('데이터 등록에 실패했습니다');
+        }
+      }
+
+    } catch (error) {
+      console.error("Error saving data:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        alert(error.response.data.message || '저장 중 오류가 발생했습니다');
+      } else {
+        console.error("Network Error:", error.message);
+        alert(error.message || '네트워크 오류가 발생했습니다');
+      }
+    }
   };
 
   return (
@@ -110,13 +198,11 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           <Title>{title}</Title>
         </TitleArea>
         <ContentArea>
-          <InputGroup>
+          <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
+            <Label>코 드</Label>
+            <Input name="HC11010" value={editedItem.HC11010} onChange={handleChange} style={{ marginRight: '5px' }} />
             <Label>거래처명</Label>
-            <Input
-              name="HC11020"
-              value={editedItem.HC11020}
-              onChange={handleChange}
-            />
+            <Input name="HC11020" value={editedItem.HC11020} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
             <Label>사업자No</Label>

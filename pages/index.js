@@ -1,20 +1,23 @@
-import Head from 'next/head'
-import MainMenu from '../components/Mainmeun'
+import React, { useState } from 'react';
+import Login from '../components/Login';
+import MainMenu from '../components/MainMenu';
 
-export default function Home() {
+const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
   return (
     <div>
-      <Head>
-        <title>(주)명윤철강</title>
-        <meta name="description" content="Next.js로 만든 E4SSC 웹앱" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main>
-        <h1>(주)명윤철강 ERP for Coil Service Center [개발팀]</h1>
+      {isAuthenticated ? (
         <MainMenu />
-      </main>
+      ) : (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )}
     </div>
-  )
-  
-}
+  );
+};
+
+export default App;

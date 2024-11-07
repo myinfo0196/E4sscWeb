@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import PrintModal from './PrintModal';
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
@@ -71,10 +72,10 @@ const columnDefs = [
 
 const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
-  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false, print: false });
   const [conditions, setConditions] = useState(() => {
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
-    const savedConditions = localStorage.getItem('savedConditions');
+    const savedConditions = localStorage.getItem('w_ac01040Conditions');
     return savedConditions ? JSON.parse(savedConditions) : {
       includeDiscarded: '',
     };
@@ -87,11 +88,12 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [modalTitle, setModalTitle] = useState('');
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData1 || []);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const fetchPermissions = useCallback(async () => {
     const response = await new Promise(resolve => {
       const timer = setTimeout(() => {
-        resolve({ view: true, add: true, update: true, delete: true });
+        resolve({ view: true, add: true, update: true, delete: true, print: true });
       }, 1000);
       return () => clearTimeout(timer);
     });
@@ -135,7 +137,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     setConditions(updatedConditions);
     
     // 조건이 변경될 때마다 localStorage에 저장합니다.
-    localStorage.setItem('savedConditions', JSON.stringify(updatedConditions));
+    localStorage.setItem('w_ac01040Conditions', JSON.stringify(updatedConditions));
   };
 
   const handleSearch = async () => {
@@ -268,7 +270,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         if (confirmDelete) {
           try {
             const params = { 
-              map: 'cd01.ac01040_del', 
+              map: 'cd01.ac01040_d', 
               table: 'ssc_00_demo.dbo', 
               F04010: selectedItem.F04010 
             };
@@ -287,7 +289,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
                 onDataChange(newResults);
               }
             } else {
-              alert('삭제 실패: ' + response.data.message);
+              alert('삭제 실패: ' + response.data.data.err);
             }
           } catch (error) {
             console.error('삭제 중 오류 발생:', error);
@@ -301,7 +303,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleExcelDownload: async () => {
       if (gridRef.current && gridRef.current.api) {
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('검색결과');
+        const worksheet = workbook.addWorksheet('w_ac01040');
 
         worksheet.addRow(columnDefs.map(col => col.headerName));
 
@@ -314,7 +316,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         });
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer]), '검색결과.xlsx');
+        saveAs(new Blob([buffer]), 'w_ac01040.xlsx');
       }
     },
     handlePdfDownload: () => {
@@ -329,20 +331,23 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           });
           
           pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save('검색결과.pdf');
+          pdf.save('w_ac01040.pdf');
         });
       }
     },
     handleCsvDownload: () => {
       if (gridRef.current && gridRef.current.api) {
         const params = {
-          fileName: '검색결과.csv',
+          fileName: 'w_ac01040.csv',
         };
         gridRef.current.api.exportDataAsCsv(params);
       }
     },
     //handleShowAllResults,
     //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
+    handlePrint: () => {
+      setIsPrintModalOpen(true);
+    },
   }));
 
   return (
@@ -390,6 +395,13 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           title={modalTitle}
         />
       )}
+      <PrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        data={results}
+        title="계좌코드 목록"
+        printComponentPath="w_ac01040_02"
+      />
     </CardContainer>
   );
 });
