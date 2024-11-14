@@ -15,6 +15,8 @@ const Container = styled.div`
 const Title = styled.h2`
   text-align: center;
   margin-bottom: 20px;
+  font-size: 30px;
+  color: blue;
 `;
 
 const Form = styled.form`
@@ -76,6 +78,12 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       if (response.data && !response.data.data.err) {
+        // Save userId to localStorage
+        localStorage.setItem('LoginResults', JSON.stringify({
+          userId,
+          userName: response.data.data.HZ01030,
+          dboTable: 'ssc_00_demo.dbo',
+        }));
         // Call the onLoginSuccess prop to navigate to MainMenu
         onLoginSuccess();
       } else {
@@ -89,7 +97,7 @@ const Login = ({ onLoginSuccess }) => {
 
   return (
     <Container>
-      <Title>로그인</Title>
+      <Title>철강ERP시스템 (E4SSC)</Title>
       <Form onSubmit={handleLogin}>
         <InputGroup>
           <Label>사용자 이름:</Label>

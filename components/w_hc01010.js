@@ -10,55 +10,10 @@ import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PrintModal from './PrintModal';
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
-
-const CardContainer = styled.div`
-  padding: 5px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const ConditionArea = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  background-color: #f8f8f8;
-  padding: 15px;
-  border-radius: 5px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-`;
-
-const Label = styled.label`
-  margin-right: 5px;
-  white-space: nowrap;
-`;
-
-const Input = styled.input`
-  padding: 5px;
-  width: 120px;
-`;
-
-const ResultArea = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const GridContainer = styled.div`
-  height: 400px;
-  width: 100%;
-  flex: 1;
-`;
 
 // columnDefs를 컴포넌트 외부로 이동
 const columnDefs = [
@@ -154,8 +109,8 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     try {
       const params = {
         map: 'cd01.cd01010_s',
-        table: 'ssc_00_demo.dbo',
-        sale11020_hc01010: conditions?.businessPlace || '',
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+        HC01010: conditions?.businessPlace || '',
       };
 
       const response = await axiosInstance.get('comm.jsp', { 
@@ -184,7 +139,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           onDataChange(updatedResults);
         }
 
-        localStorage.setItem('w_hc01010Results', JSON.stringify(updatedResults));
+        localStorage.setItem('w_hc01010Results', JSON.stringify(newResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
@@ -210,7 +165,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     console.log('Edited item:', editedItem);
     setResults(prevResults => 
       prevResults.map(item => 
-        item.HC11010 === editedItem.HC11010 ? editedItem : item
+        item.HC01010 === editedItem.HC01010 ? editedItem : item
       )
     );
     handleCloseModal();
@@ -242,8 +197,8 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           try {
             const params = { 
               map: 'cd01.cd01010_d', 
-              table: 'ssc_00_demo.dbo', 
-              F04010: selectedItem.HC01010 
+              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
+              HC01010: selectedItem.HC01010 
             };
 
             const response = await axiosInstance.post('comm_delete.jsp', params);
@@ -332,6 +287,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               name="businessPlace"
               value={conditions?.businessPlace || ''}
               onChange={handleInputChange}
+              style={{ width: '120px' }}
             />
           </Label>
         </InputGroup>

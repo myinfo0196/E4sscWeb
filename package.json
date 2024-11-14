@@ -23,6 +23,7 @@
     "jspdf-autotable": "^3.8.4",
     "lodash": "^4.17.21",
     "next": "14.2.15",
+    "pdfmake": "^0.2.15",
     "print-js": "^1.6.0",
     "react": "^18",
     "react-data-grid": "^7.0.0-beta.47",

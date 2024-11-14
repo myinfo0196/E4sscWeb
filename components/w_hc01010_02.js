@@ -1,137 +1,61 @@
 import React, { forwardRef } from 'react';
-import styled from 'styled-components';
-
-const PrintContainer = styled.div`
-  padding: 20px;
-  
-  @media print {
-    padding: 0;
-  }
-`;
-
-const PrintHeader = styled.div`
-  text-align: center;
-  margin-bottom: 20px;
-  page-break-inside: avoid;
-  
-  h1 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-  
-  .print-date {
-    font-size: 12px;
-    color: #666;
-  }
-`;
-
-const PrintTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  
-  th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    font-size: 12px;
-  }
-  
-  th {
-    background-color: #f8f8f8;
-    font-weight: bold;
-    white-space: nowrap;
-  }
-
-  td {
-    white-space: normal;
-    word-break: break-all;
-  }
-  
-  @media print {
-    th {
-      background-color: #f8f8f8 !important;
-      -webkit-print-color-adjust: exact;
-    }
-    
-    thead {
-      display: table-header-group;
-    }
-    
-    tr {
-      page-break-inside: avoid;
-    }
-  }
-`;
-
-const PrintFooter = styled.div`
-  text-align: right;
-  font-size: 12px;
-  color: #666;
-  margin-top: 20px;
-  page-break-inside: avoid;
-`;
+import { Title, Table, TableHeader, TableRow } from './PrintStyles'; // Import common styles
 
 const W_HC01010_02 = forwardRef(({ data, title = "사업장 코드관리" }, ref) => {
-  const currentDate = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  if (!data || data.length === 0) {
-    return (
-      <PrintContainer ref={ref}>
-        <PrintHeader>
-          <h1>{title}</h1>
-          <div className="print-date">출력일시: {currentDate}</div>
-        </PrintHeader>
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          데이터가 없습니다.
-        </div>
-      </PrintContainer>
-    );
-  }
+  const formattedData = data.map(item => ({
+    hc01010:item.HC01010,
+    hc01030:item.HC01030,
+    hc01020:item.HC01020,
+    hc01040:item.HC01040,
+    hc01100:item.HC01100,
+    hc01090:item.HC01090,
+  }));
 
   return (
-    <PrintContainer ref={ref}>
-      <PrintHeader>
-        <h1>{title}</h1>
-        <div className="print-date">출력일시: {currentDate}</div>
-      </PrintHeader>
-
-      <PrintTable>
+    <div>
+      <Title>{title}</Title>
+      <Table>
         <thead>
-          <tr>
-            <th>코드</th>
-            <th>사업자등록번호</th>
-            <th>상호</th>
-            <th>대표자</th>
-            <th>업태</th>
-            <th>업종</th>
-          </tr>
+          <TableRow>
+            {getTableHeaders().map((header, index) => (
+              <TableHeader key={index}>{header}</TableHeader>
+            ))}
+          </TableRow>
         </thead>
         <tbody>
-          {data.map((item, index) => (
-            <tr key={index}>
-              <td>{item.HC01010}</td>
-              <td>{item.HC01030}</td>
-              <td>{item.HC01020}</td>
-              <td>{item.HC01040}</td>
-              <td>{item.HC01100}</td>
-              <td>{item.HC01090}</td>
-            </tr>
+          {formattedData.map((item, index) => (
+            <TableRow key={index}>
+              <td>{item.hc01010}</td>
+              <td>{item.hc01030}</td>
+              <td>{item.hc01020}</td>
+              <td>{item.hc01040}</td>
+              <td>{item.hc01100}</td>
+              <td>{item.hc01090}</td>
+              </TableRow>
           ))}
         </tbody>
-      </PrintTable>
-
-      <PrintFooter>
-        <div>총 {data.length}건</div>
-      </PrintFooter>
-    </PrintContainer>
+      </Table>
+    </div>
   );
 });
+
+export const getTableHeaders = () => {
+  return ['코드', '사업자등록번호', '상호', '대표자', '업태', '업종'];
+}
+
+export const getFormattedData = (data) => {
+  return data.map(item => [
+    item.HC01010,
+    item.HC01030,
+    item.HC01020,
+    item.HC01040,
+    item.HC01100,
+    item.HC01090,
+  ]);
+};
+
+export const getWidthData = () => {
+  return [25, 80, 110, 50, 100, 100];
+}
 
 export default W_HC01010_02;

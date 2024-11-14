@@ -10,55 +10,10 @@ import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PrintModal from './PrintModal';
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
-
-const CardContainer = styled.div`
-  padding: 5px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const ConditionArea = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  background-color: #f8f8f8;
-  padding: 15px;
-  border-radius: 5px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-`;
-
-const Label = styled.label`
-  margin-right: 5px;
-  white-space: nowrap;
-`;
-
-const Input = styled.input`
-  padding: 5px;
-  width: 120px;
-`;
-
-const ResultArea = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const GridContainer = styled.div`
-  height: 400px;
-  width: 100%;
-  flex: 1;
-`;
 
 // columnDefs를 컴포넌트 외부로 이동
 const columnDefs = [
@@ -150,7 +105,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     try {
       const params = {
         map: 'cd01.ac01040_s',
-        table: 'ssc_00_demo.dbo',
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
       };
 
       if (!conditions.includeDiscarded) {
@@ -181,7 +136,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         setData(newResults);
         onDataChange(updatedResults);
 
-        localStorage.setItem('w_ac01040Results', JSON.stringify(updatedResults));
+        localStorage.setItem('w_ac01040Results', JSON.stringify(newResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
@@ -205,49 +160,17 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   const handleSaveEdit = useCallback((editedItem) => {
     console.log('Edited item:', editedItem);
-    
-    if (editedItem.isNew) {
-      // 새로운 항목 추가
-      setResults(prevResults => [...prevResults, editedItem]);
-      
-      // allResults 업데이트
-      setAllResults(prev => ({
-        ...prev,
-        [editedItem.F04010]: editedItem
-      }));
-
-      // 캐시된 데이터 업데이트
-      if (typeof onDataChange === 'function') {
-        onDataChange({
-          ...allResults,
-          [editedItem.F04010]: editedItem
-        });
-      }
-    } else {
-      // 기존 항목 수정
-      setResults(prevResults => 
-        prevResults.map(item => 
-          item.F04010 === editedItem.F04010 ? editedItem : item
-        )
-      );
-      
-      // allResults 업데이트
-      setAllResults(prev => ({
-        ...prev,
-        [editedItem.F04010]: editedItem
-      }));
-
-      // 캐시된 데이터 업데이트
-      if (typeof onDataChange === 'function') {
-        onDataChange({
-          ...allResults,
-          [editedItem.F04010]: editedItem
-        });
-      }
-    }
-    
+    setResults(prevResults => 
+      prevResults.map(item => 
+        item.F04010 === editedItem.F04010 ? editedItem : item
+      )
+    );
     handleCloseModal();
-  }, [allResults, onDataChange]);
+  }, []);
+
+  const handleShowAllResults = () => {
+    setResults(Object.values(allResults));
+  };
 
   useImperativeHandle(ref, () => ({
     handleSearch,
@@ -271,7 +194,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           try {
             const params = { 
               map: 'cd01.ac01040_d', 
-              table: 'ssc_00_demo.dbo', 
+              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
               F04010: selectedItem.F04010 
             };
 
@@ -343,11 +266,11 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         gridRef.current.api.exportDataAsCsv(params);
       }
     },
-    //handleShowAllResults,
-    //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
     handlePrint: () => {
       setIsPrintModalOpen(true);
     },
+    //handleShowAllResults,
+    //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
   }));
 
   return (
@@ -359,7 +282,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
             <Input
               type="checkbox"
               name="includeDiscarded"
-              checked={conditions.includeDiscarded || false}
+              checked={JSON.parse(localStorage.getItem('w_ac01040Conditions')).includeDiscarded || false}
               onChange={handleInputChange}
             />
           </Label>

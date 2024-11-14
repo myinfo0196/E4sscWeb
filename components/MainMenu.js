@@ -164,9 +164,74 @@ const MainMenu = () => {
   const location = useLocation();
 
   useEffect(() => {
-    fetchMenuData();
+    fetchInitialData();
   }, []); // 컴포넌트가 마운트될 때 한 번만 실행
+
+  const fetchInitialData = async () => {
+    try {
+      // Fetch data from comm.comm_s
+      const commResponse = await axiosInstance.get('comm.jsp', {
+        params: {
+          map: 'comm.comm_s',
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+        },
+      });
+
+      // Cache the data in localStorage
+      const commData = commResponse.data.data ? commResponse.data.data.result : [];
+      localStorage.setItem('CommData', JSON.stringify(commData));
+
+      // Now fetch menu data using the cached data
+      fetchMenuData();
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    }
+  };
+
+  const fetchMenuData = async () => {
+    try {
+      const params = {
+        map: 'comm.menu_s',
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+        buttonid: '',
+      };
+
+      const response = await axiosInstance.get('comm.jsp', {
+        params,
+        paramsSerializer: params => {
+          return Object.entries(params)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join('&');
+        }
+      });
+
+      console.log('API Response:', response.data); // 전체 응답 로깅
+      const data = response.data.data ? response.data.data.result : []; // data가 undefined일 경우 빈 배열로 설정
+
+      if (!Array.isArray(data)) {
+        console.error('Unexpected data structure:', data);
+        return;
+      }
   
+      const mainMenus = data.filter(item => item.module === 'parent');
+      const subMenus = data.filter(item => item.module !== 'parent').reduce((acc, item) => {
+        if (!acc[item.buttonid]) {
+          acc[item.buttonid] = [];
+        }
+        acc[item.buttonid].push(item);
+        return acc;
+      }, {});
+  
+      console.log('Processed menu data:', { mainMenus, subMenus });
+      setMenuData({ mainMenus, subMenus });
+      if (mainMenus.length > 0) {
+        setActiveMainTab(mainMenus[0].buttonid);
+      }
+    } catch (error) {
+      console.error('Error fetching menu data:', error);
+    }
+  };
+
   useEffect(() => {
     const currentPath = location.pathname.split('/').pop();
     const currentMenu = Object.keys(menuData.subMenus).find(key => key.toLowerCase() === currentPath);
@@ -197,49 +262,6 @@ const MainMenu = () => {
     }
   };
   
-  const fetchMenuData = async () => {
-    try {
-      const params = {
-        map: 'comm.menu_s',
-        table: 'ssc_00_demo.dbo',
-        buttonid: '',
-      };
-
-      const response = await axiosInstance.get('comm.jsp', {
-        params,
-        paramsSerializer: params => {
-          return Object.entries(params)
-            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-            .join('&');
-        }
-      });
-      console.log('API Response:', response.data); // 전체 응답 로깅
-      const data = response.data.data ? response.data.data.result : []; // data가 undefined일 경우 빈 배열로 설정
-
-      if (!Array.isArray(data)) {
-        console.error('Unexpected data structure:', data);
-        return;
-      }
-  
-      const mainMenus = data.filter(item => item.module === 'parent');
-      const subMenus = data.filter(item => item.module !== 'parent').reduce((acc, item) => {
-        if (!acc[item.buttonid]) {
-          acc[item.buttonid] = [];
-        }
-        acc[item.buttonid].push(item);
-        return acc;
-      }, {});
-  
-      console.log('Processed menu data:', { mainMenus, subMenus });
-      setMenuData({ mainMenus, subMenus });
-      if (mainMenus.length > 0) {
-        setActiveMainTab(mainMenus[0].buttonid);
-      }
-    } catch (error) {
-      console.error('Error fetching menu data:', error);
-    }
-  };
-
   const updateBreadcrumb = useCallback((menuName) => {
     const mainMenu = menuData.mainMenus.find(menu => 
       menuData.subMenus[menu.buttonid]?.some(subMenu => subMenu.module === menuName)

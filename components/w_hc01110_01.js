@@ -1,97 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-
-const ModalBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalContent = styled.div`
-  background-color: white;
-  border-radius: 8px;
-  width: 700px;
-  max-width: 90%;
-  overflow: hidden;
-`;
-
-const TitleArea = styled.div`
-  background-color: #f8f9fa;
-  padding: 15px 20px;
-  border-bottom: 1px solid #dee2e6;
-`;
-
-const Title = styled.h2`
-  margin: 0;
-  font-size: 18px;
-`;
-
-const ContentArea = styled.div`
-  padding: 20px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const Label = styled.label`
-  width: 120px;
-  margin-right: 10px;
-  font-weight: bold;
-`;
-
-const Input = styled.input`
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-`;
+import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
 
 const ButtonGroup = styled.div`
-  display: flex;
-  border-top: 1px solid #dee2e6;
+display: flex;
+border-top: 1px solid #dee2e6;
 `;
 
 const Button = styled.button`
-  flex: 1;
-  padding: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
+flex: 1;
+padding: 12px;
+border: none;
+cursor: pointer;
+font-size: 16px;
 `;
 
 const SaveButton = styled(Button)`
-  background-color: #007bff;
-  color: white;
+background-color: #007bff;
+color: white;
 `;
 
 const CancelButton = styled(Button)`
-  background-color: #6c757d;
-  color: white;
+background-color: #6c757d;
+color: white;
 `;
 
 const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   const [editedItem, setEditedItem] = useState(item);
 
   useEffect(() => {
+    setEditedItem(item); // Update editedItem when item changes
+  }, [item]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const params = { 
-          map: 'cd01.hc01110_s1', 
-          table: 'ssc_00_demo.dbo', 
-          f04010: item.F04010 
+          map: 'cd01.cd01110_s1', 
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
+          HC11010: item.HC11010 
         };
-        const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
+        const response = await axiosInstance.get('comm.jsp', {
           params,
           paramsSerializer: params => {
             return Object.entries(params)
@@ -99,15 +49,18 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .join('&');
           }
         });
-        setEditedItem(response.data);
+        setEditedItem(response.data.data.result[0]);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    if (item.HC11010) {
+
+    // Only fetch data if in edit mode and HC11010 exists
+    if (mode === 'edit' && item.HC11010) {
       fetchData();
     }
-  }, [item.HC11010]);
+  }, [mode, item.HC11010]); // Ensure dependencies are correct
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -117,7 +70,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   const handleSave = async () => {
     try {
       let params = {
-        table: 'ssc_00_demo.dbo'
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable
       };
 
       if (mode === 'edit') {
@@ -198,43 +151,44 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           <Title>{title}</Title>
         </TitleArea>
         <ContentArea>
-          <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
-            <Label>코 드</Label>
-            <Input name="HC11010" value={editedItem.HC11010} onChange={handleChange} style={{ marginRight: '5px' }} />
+          <InputGroup>
+            <Label>거래처코드</Label>
+            <Input name="HC11010" value={editedItem.HC11010} onChange={handleChange} style={{ width: '5px' }} />
+            <Label>거래처구분</Label>
+            <Select name="HC11011" value={editedItem.HC11011} onChange={handleChange} >
+              {JSON.parse(localStorage.getItem('CommData')).filter(data => data.hz05020 === '011').map(data => (
+                <option key={data.hz05030} value={data.hz05030} selected={editedItem.HC11011 === data.hz05030}>{data.hz05040}</option>
+              ))} 
+            </Select>
+          </InputGroup>
+          <InputGroup>
             <Label>거래처명</Label>
-            <Input name="HC11020" value={editedItem.HC11020} onChange={handleChange} />
+            <Input name="HC11020" value={editedItem.HC11020 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
+            <Label>사업자번호</Label>
+            <Input name="HC11030" value={editedItem.HC11030 || ''} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
-            <Label>사업자No</Label>
-            <Input
-              name="HC11030"
-              value={editedItem.HC11030}
-              onChange={handleChange}
-            />
+            <Label>대표자명</Label>
+            <Input name="HC11040" value={editedItem.HC11040 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
+            <Label>법인 번호</Label>
+            <Input name="HC11080" value={editedItem.HC11080 || ''} onChange={handleChange} size={6} maxLength={6} />
+            -<Input name="HC11090" value={editedItem.HC11090 || ''} onChange={handleChange} size={7} maxLength={7} />
           </InputGroup>
           <InputGroup>
-            <Label>대 표 자</Label>
-            <Input
-              name="HC11040"
-              value={editedItem.HC11040}
-              onChange={handleChange}
-            />
-          </InputGroup>
-          <InputGroup>
-            <Label>담 당 자</Label>
-            <Input
-              name="HC11070"
-              value={editedItem.HC11070}
-              onChange={handleChange}
-            />
+            <Label>우편번호</Label>
+            <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
+            <Label>주 소</Label>
+            <Input name="HC11150" value={editedItem.HC11150 || ''} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
             <Label>전화번호</Label>
-            <Input
-              name="HC11210"
-              value={editedItem.HC11210}
-              onChange={handleChange}
-            />
+            <Input name="HC11210" value={editedItem.HC11210 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
+            <Label>FAX 번호</Label>
+            <Input name="HC11200" value={editedItem.HC11200 || ''} onChange={handleChange} />
+          </InputGroup>
+          <InputGroup>
+            <Label>담 당 자</Label>
+            <Input name="HC11070" value={editedItem.HC11070 || ''} onChange={handleChange} />
           </InputGroup>
         </ContentArea>
         <ButtonGroup>

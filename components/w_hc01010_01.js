@@ -1,60 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
+import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
 
-const ModalBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalContent = styled.div`
-  background-color: white;
-  border-radius: 8px;
-  width: 400px;
-  overflow: hidden;
-`;
-
-
-const TitleArea = styled.div`
-  background-color: #f8f9fa;
-  padding: 15px 20px;
-  border-bottom: 1px solid #dee2e6;
-`;
-
-const Title = styled.h2`
-  margin: 0;
-  font-size: 18px;
-`;
-
-const ContentArea = styled.div`
-  padding: 20px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const Label = styled.label`
-  width: 120px;
-  margin-right: 10px;
-  font-weight: bold;
-`;
-
-const Input = styled.input`
-  flex: 1;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-`;
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -87,7 +35,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
       try {
         const params = { 
           map: 'cd01.cd01010_s1', 
-          table: 'ssc_00_demo.dbo', 
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
           HC01010: item.HC01010 
         };
         const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
@@ -98,7 +46,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
               .join('&');
           }
         });
-        setEditedItem(response.data);
+        setEditedItem(response.data.data.result[0]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -116,7 +64,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
   const handleSave = async () => {
     try {
       let params = {
-        table: 'ssc_00_demo.dbo'
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable
       };
 
       if (mode === 'edit') {
@@ -192,7 +140,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
 
   return (
     <ModalBackground>
-      <ModalContent>
+      <ModalContent style={{ width: '400px'}}>
         <TitleArea>
           <Title>{title}</Title>
         </TitleArea>
@@ -206,7 +154,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
             <Input name="HC01020" value={editedItem.HC01020} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
-            <Label>사업자등록번호</Label>
+            <Label>사업자번호</Label>
             <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
