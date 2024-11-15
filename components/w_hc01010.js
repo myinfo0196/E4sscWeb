@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import W_HC01010_01 from './w_hc01010_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -9,55 +9,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import PrintModal from './PrintModal';
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
-
-const CardContainer = styled.div`
-  padding: 5px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const ConditionArea = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  background-color: #f8f8f8;
-  padding: 15px;
-  border-radius: 5px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-`;
-
-const Label = styled.label`
-  margin-right: 5px;
-  white-space: nowrap;
-`;
-
-const Input = styled.input`
-  padding: 5px;
-  width: 120px;
-`;
-
-const ResultArea = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const GridContainer = styled.div`
-  height: 400px;
-  width: 100%;
-  flex: 1;
-`;
 
 // columnDefs를 컴포넌트 외부로 이동
 const columnDefs = [
@@ -71,10 +27,10 @@ const columnDefs = [
 
 const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
-  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false });
+  const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false, print: false });
   const [conditions, setConditions] = useState(() => {
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
-    const savedConditions = localStorage.getItem('savedConditions');
+    const savedConditions = localStorage.getItem('w_hc01010Conditions');
     return savedConditions ? JSON.parse(savedConditions) : {
       businessPlace: '',
     };
@@ -87,11 +43,14 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [modalTitle, setModalTitle] = useState('');
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData1 || []);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const fetchPermissions = useCallback(async () => {
     // 실제 API 호출을 모방한 Promise
     const response = await new Promise(resolve => {
-      const timer =setTimeout(() => resolve({ view: true, add: true, update: true, delete: false }), 1000); 
+      const timer =setTimeout(() => {
+        resolve({ view: true, add: true, update: true, delete: false, print: true });
+      }, 1000); 
       return () => clearTimeout(timer);
       }
     );
@@ -104,7 +63,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   useEffect(() => {
     fetchPermissions();
-  }, [fetchPermissions]);
+  }, []);
 
   useEffect(() => {
     if (cachedData1) {
@@ -138,7 +97,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     setConditions(updatedConditions);
     
     // 조건이 변경될 때마다 localStorage에 저장합니다.
-    localStorage.setItem('savedConditions', JSON.stringify(updatedConditions));
+    localStorage.setItem('w_hc01010Conditions', JSON.stringify(updatedConditions));
   };
 
   const handleSearch = async () => {
@@ -149,12 +108,12 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
     try {
       const params = {
-        map: 'sale11010.sale11020_s',
-        table: 'ssc_00_demo.dbo',
-        sale11020_hc01010: conditions?.businessPlace || '',
+        map: 'cd01.cd01010_s',
+        table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+        HC01010: conditions?.businessPlace || '',
       };
 
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+      const response = await axiosInstance.get('comm.jsp', { 
         params,
         paramsSerializer: params => {
           return Object.entries(params)
@@ -180,7 +139,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           onDataChange(updatedResults);
         }
 
-        localStorage.setItem('w_hc01010Results', JSON.stringify(updatedResults));
+        localStorage.setItem('w_hc01010Results', JSON.stringify(newResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
@@ -206,7 +165,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     console.log('Edited item:', editedItem);
     setResults(prevResults => 
       prevResults.map(item => 
-        item.HC11010 === editedItem.HC11010 ? editedItem : item
+        item.HC01010 === editedItem.HC01010 ? editedItem : item
       )
     );
     handleCloseModal();
@@ -217,64 +176,60 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   };
 
   useImperativeHandle(ref, () => ({
-    handleSearch: () => {
-      if (permissions.view) {
-        handleSearch();
-      } else {
-        alert('조회 권한이 없습니다.');
-      }
-    },
+    handleSearch,
     handleCreate: () => {
-      if (permissions.add) {
-        setSelectedItem(null);
-        setModalMode('create');
-        setModalTitle('사업장 정보 등록');
-      } else {
-        alert('등록 권한이 없습니다.');
-      }
+      setSelectedItem(null);
+      setModalMode('create');
+      setModalTitle('사업장 정보 등록');
     },
     handleEdit: () => {
-      if (permissions.update) {
-        if (selectedItem) {
-          setModalMode('edit');
-          setModalTitle('사업장 정보 수정');
-        } else {
-          alert('수정할 항목을 선택해주세요.');
-        }
+      if (selectedItem) {
+        setModalMode('edit');
+        setModalTitle('사업장 정보 수정');
       } else {
-        alert('수정 권한이 없습니다.');
+        alert('수정할 항목을 선택해주세요.');
       }
     },
-    handleDelete: () => {
-      if (permissions.delete) {
-        if (selectedItem) {
-          const confirmDelete = window.confirm('선택한 사업장을 삭제하시겠습니까?');
-          if (confirmDelete) {
-            setAllResults(prevAllResults => {
-              const updatedResults = { ...prevAllResults };
-              delete updatedResults[selectedItem.HC01010];
-              return updatedResults;
-            });
-            setResults(prevResults => prevResults.filter(item => item.HC01010 !== selectedItem.HC01010));
-            setSelectedItem(null);
-            if (gridRef.current && gridRef.current.api) {
-              gridRef.current.api.deselectAll();
+    handleDelete: async() => {
+      if (selectedItem) {
+        const confirmDelete = window.confirm('선택한 사업장을 삭제하시겠습니까?');
+        if (confirmDelete) {
+          try {
+            const params = { 
+              map: 'cd01.cd01010_d', 
+              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
+              HC01010: selectedItem.HC01010 
+            };
+
+            const response = await axiosInstance.post('comm_delete.jsp', params);
+            if (parseInt(response.data.data.result) > 0) {
+              const newResults = { ...allResults };
+              delete newResults[selectedItem.HC01010];
+              setAllResults(newResults);
+              setResults(prevResults => prevResults.filter(item => item.HC01010 !== selectedItem.HC01010));
+              setSelectedItem(null);
+              if (gridRef.current && gridRef.current.api) {
+                gridRef.current.api.deselectAll();
+              }
+              if (typeof onDataChange === 'function') {
+                onDataChange(newResults);
+              }
+            } else {
+              alert('삭제 실패: ' + response.data.message);
             }
-            if (typeof onDataChange === 'function') {
-              onDataChange(updatedResults);
-            }
+          } catch (error) {
+            console.error('삭제 중 오류 발생:', error);
+            alert('삭제 중 오류 발생: ' + (error.response?.data?.message || error.message));
           }
-        } else {
-          alert('삭제할 항목을 선택해주세요.');
         }
       } else {
-        alert('삭제 권한이 없습니다.');
+        alert('삭제할 항목을 선택해주세요.');
       }
     },
     handleExcelDownload: async () => {
       if (gridRef.current && gridRef.current.api) {
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('검색결과');
+        const worksheet = workbook.addWorksheet('w_hc01010');
 
         worksheet.addRow(columnDefs.map(col => col.headerName));
 
@@ -287,7 +242,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         });
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer]), '검색결과.xlsx');
+        saveAs(new Blob([buffer]), 'w_hc01010.xlsx');
       }
     },
     handlePdfDownload: () => {
@@ -302,33 +257,39 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           });
           
           pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save('검색결과.pdf');
+          pdf.save('w_hc01010.pdf');
         });
       }
     },
     handleCsvDownload: () => {
       if (gridRef.current && gridRef.current.api) {
         const params = {
-          fileName: '검색결과.csv',
+          fileName: 'w_hc01010.csv',
         };
         gridRef.current.api.exportDataAsCsv(params);
       }
     },
-    handleShowAllResults,
-    refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
+    handlePrint: () => {
+      setIsPrintModalOpen(true);
+    },
+    //handleShowAllResults,
+    //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
   }));
 
   return (
     <CardContainer>
       <ConditionArea>
         <InputGroup>
-          <Label>사업장:</Label>
-          <Input
-            type="text"
-            name="businessPlace"
-            value={conditions?.businessPlace || ''}
-            onChange={handleInputChange}
-          />
+          <Label>
+            사업장:
+            <Input
+              type="text"
+              name="businessPlace"
+              value={conditions?.businessPlace || ''}
+              onChange={handleInputChange}
+              style={{ width: '120px' }}
+            />
+          </Label>
         </InputGroup>
       </ConditionArea>
       <ResultArea>
@@ -361,6 +322,13 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           title={modalTitle}
         />
       )}
+      <PrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        data={results}
+        title="사업장 코드관리"
+        printComponentPath="w_hc01010_02"
+      />
     </CardContainer>
   );
 });
