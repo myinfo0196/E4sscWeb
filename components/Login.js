@@ -15,6 +15,11 @@ const Container = styled.div`
 const Title = styled.h2`
   text-align: center;
   margin-bottom: 20px;
+<<<<<<< HEAD
+=======
+  font-size: 30px;
+  color: blue;
+>>>>>>> bb04bcab6a310f1d1b8b7896658a09312bf78778
 `;
 
 const Form = styled.form`
@@ -95,7 +100,11 @@ const Login = ({ onLoginSuccess }) => {
 
   return (
     <Container>
+<<<<<<< HEAD
       <Title>로그인</Title>
+=======
+      <Title>철강ERP시스템 (E4SSC)</Title>
+>>>>>>> bb04bcab6a310f1d1b8b7896658a09312bf78778
       <Form onSubmit={handleLogin}>
         <InputGroup>
           <Label>사용자 이름:</Label>

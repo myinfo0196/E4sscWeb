@@ -227,7 +227,7 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
 
   useEffect(() => {
     fetchPermissions();
-  }, [fetchPermissions]);
+  }, []);
 
 
   useImperativeHandle(ref, () => ({
