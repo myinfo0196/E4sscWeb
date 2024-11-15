@@ -1,10 +1,11 @@
 import React, { useRef, Suspense, lazy, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from './vfs_fonts';
 
 // Set PDFMake fonts
 pdfMake.vfs = pdfFonts;
+
 
 const GlobalPrintStyle = createGlobalStyle`
   @media print {
@@ -136,37 +137,37 @@ const PrintModal = ({ isOpen, onClose, data, title, printComponentPath }) => {
   const handlePDF = async () => {
     const { default: Component, getFormattedData, getTableHeaders, getWidthData } = await import(`./${printComponentPath}`);
     
-    // Get the formatted data for the PDF
+    // PDF에 대한 형식화된 데이터 가져오기
     const formattedData = getFormattedData(data);
-    const headers = getTableHeaders(); // Get the table headers
+    const headers = getTableHeaders(); // 테이블 헤더 가져오기
 
-    // Register the Noto Sans and Roboto fonts
-    pdfMake.vfs = pdfFonts; // Ensure the font is registered
+    // Noto Sans 폰트 등록
+    pdfMake.vfs = pdfFonts; // 폰트가 등록되었는지 확인
     pdfMake.fonts = {
         NotoSans: {
-            normal: '/fonts/NotoSans-Regular.otf',
-            bold: '/fonts/NotoSans-Bold.otf',
-            italics: '/fonts/NotoSans-Regular.otf',
-            bolditalics: '/fonts/NotoSans-Regular.otf',
+            normal: 'NotoSans-Regular.otf',
+            bold: 'NotoSans-Bold.otf',
+            italics: 'NotoSans-Regular.otf',
+            bolditalics: 'NotoSans-Regular.otf',
         },
         Roboto: {
-            normal: '/fonts/Roboto-Regular.ttf',
-            bold: '/fonts/Roboto-Bold.ttf',
-            italics: '/fonts/Roboto-Italic.ttf',
-            bolditalics: '/fonts/Roboto-BoldItalic.ttf',
-        },
-    };
+          normal: 'Roboto-Regular.ttf',
+          bold: 'Roboto-Medium.ttf',
+          italics: 'Roboto-Italic.ttf',
+          bolditalics: 'Roboto-MediumItalic.ttf',
+      },
+  };
 
-    // Create document definition based on the formatted data
+    // 형식화된 데이터를 기반으로 문서 정의 생성
     const documentDefinition = {
         content: [
             { text: title, style: 'header' },
             {
                 table: {
-                    widths: getWidthData(), // Use getWidthData to determine widths
+                    widths: getWidthData(), // 너비 결정에 getWidthData 사용
                     body: [
-                        headers.map(header => ({ text: header, style: 'tableHeader' })), // Use styled headers
-                        ...formattedData.map(row => row.map(cell => ({ text: cell, style: 'tableCell' }))), // Use styled cells
+                        headers.map(header => ({ text: header, style: 'tableHeader' })), // 스타일이 적용된 헤더 사용
+                        ...formattedData.map(row => row.map(cell => ({ text: cell, style: 'tableCell' }))), // 스타일이 적용된 셀 사용
                     ],
                 },
                 layout: 'lightHorizontalLines',
@@ -178,31 +179,31 @@ const PrintModal = ({ isOpen, onClose, data, title, printComponentPath }) => {
                 fontSize: 18,
                 bold: true,
                 margin: [0, 20, 0, 10],
-                font: 'NotoSans', // Set font for header
+                font: 'NotoSans', // 헤더에 폰트 설정
             },
             footer: {
                 margin: [0, 20, 0, 0],
-                font: 'NotoSans', // Set font for footer
+                font: 'NotoSans', // 푸터에 폰트 설정
             },
             tableHeader: {
                 bold: true,
                 fontSize: 12,
                 color: 'black',
                 margin: [0, 5, 0, 5],
-                font: 'NotoSans', // Set font for table headers
+                font: 'NotoSans', // 테이블 헤더에 폰트 설정
             },
             tableCell: {
                 fontSize: 10,
                 margin: [0, 5, 0, 5],
-                font: 'NotoSans', // Set font for table cells
+                font: 'NotoSans', // 테이블 셀에 폰트 설정
             },
         },
-        footer: (currentPage, pageCount) => {
-            return { text: `${currentPage} / ${pageCount}`, alignment: 'center' };
-        },
+        // footer: (currentPage, pageCount) => {
+        //     return { text: `${currentPage} / ${pageCount}`, alignment: 'center' };
+        // },
     };
 
-    // Create and download the PDF
+    // PDF 생성 및 다운로드
     const pdfDocGenerator = pdfMake.createPdf(documentDefinition);
     pdfDocGenerator.download(`${printComponentPath}.pdf`);
   };

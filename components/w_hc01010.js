@@ -1,16 +1,14 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
-import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import W_HC01010_01 from './w_hc01010_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PrintModal from './PrintModal';
 import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
+import generatePdf from './pdfGenerator'; // Import the PDF generator
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
@@ -248,17 +246,24 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handlePdfDownload: () => {
       const gridElement = document.querySelector('.ag-theme-alpine');
       if (gridElement) {
-        html2canvas(gridElement).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
-          const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-          });
-          
-          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save('w_hc01010.pdf');
+        const header = ['코드','사업자등록번호','상호','대표자','업태','업종'];
+      
+        const rows = [];
+        gridRef.current.api.forEachNode(node => {
+          rows.push(node.data); // Collect data from the grid
         });
+
+        // Define the item mapping function
+        const itemMapper = (item) => [
+          item.HC01010,
+          item.HC01030,
+          item.HC01020,
+          item.HC01040,
+          item.HC01100,
+          item.HC01090,
+        ];
+
+        generatePdf(header, rows, itemMapper, 'w_hc01010'); // Call the PDF generator with header, data, and itemMapper
       }
     },
     handleCsvDownload: () => {
