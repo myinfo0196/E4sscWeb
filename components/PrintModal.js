@@ -140,6 +140,23 @@ const PrintModal = ({ isOpen, onClose, data, title, printComponentPath }) => {
     const formattedData = getFormattedData(data);
     const headers = getTableHeaders(); // Get the table headers
 
+    // Register the Noto Sans and Roboto fonts
+    pdfMake.vfs = pdfFonts; // Ensure the font is registered
+    pdfMake.fonts = {
+        NotoSans: {
+            normal: '/fonts/NotoSans-Regular.otf',
+            bold: '/fonts/NotoSans-Bold.otf',
+            italics: '/fonts/NotoSans-Regular.otf',
+            bolditalics: '/fonts/NotoSans-Regular.otf',
+        },
+        Roboto: {
+            normal: '/fonts/Roboto-Regular.ttf',
+            bold: '/fonts/Roboto-Bold.ttf',
+            italics: '/fonts/Roboto-Italic.ttf',
+            bolditalics: '/fonts/Roboto-BoldItalic.ttf',
+        },
+    };
+
     // Create document definition based on the formatted data
     const documentDefinition = {
         content: [
@@ -182,23 +199,6 @@ const PrintModal = ({ isOpen, onClose, data, title, printComponentPath }) => {
         },
         footer: (currentPage, pageCount) => {
             return { text: `${currentPage} / ${pageCount}`, alignment: 'center' };
-        },
-    };
-
-    // Register the Noto Sans and Roboto fonts
-    pdfMake.vfs = pdfFonts; // Ensure the font is registered
-    pdfMake.fonts = {
-        NotoSans: {
-            normal: 'NotoSans-Regular.otf',
-            bold: 'NotoSans-Bold.otf',
-            italics: 'NotoSans-Regular.otf',
-            bolditalics: 'NotoSans-Regular.otf',
-        },
-        Roboto: {
-            normal: 'Roboto-Regular.ttf',
-            bold: 'Roboto-Bold.ttf',
-            italics: 'Roboto-Italic.ttf',
-            bolditalics: 'Roboto-BoldItalic.ttf',
         },
     };
 
@@ -245,3 +245,4 @@ const PrintModal = ({ isOpen, onClose, data, title, printComponentPath }) => {
 };
 
 export default PrintModal;
+
