@@ -23,6 +23,7 @@ const columnDefs = [
   { field: 'F04120', headerName: '폐기일자', width: 100 }
 ];
 
+
 const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
   const [permissions, setPermissions] = useState({ view: false, add: false, update: false, delete: false, print: false });
