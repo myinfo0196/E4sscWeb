@@ -478,9 +478,10 @@ const MainMenu = () => {
   };
 
   const handleLogout = () => {
+    alert('');
     // Perform any necessary logout actions here (e.g., clearing tokens)
     localStorage.removeItem('LoginResults'); // Clear login data
-    navigate('/login'); // Navigate to the Login page
+    navigate('/'); // Navigate to the Login page
   };
 
   return (
