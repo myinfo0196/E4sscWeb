@@ -165,7 +165,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
           </InputGroup>
           <InputGroup>
             <Label>사업자번호</Label>
-            <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} />
+            <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} onBlur={e => e.target.value = e.target.value.replace(/-/g, '')} placeholder='000-00-00000'/>
           </InputGroup>
           <InputGroup>
             <Label>대표자성명</Label>
