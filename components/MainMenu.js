@@ -101,6 +101,10 @@ const ActionButton = styled.button`
   }
 `
 
+const LogoutButton = styled(ActionButton)`
+  background-color: #f44336; // Red color for logout
+`
+
 const TabList = styled.div`
   display: flex;
   border-bottom: 1px solid #ccc;
@@ -165,7 +169,7 @@ const MainMenu = () => {
 
   useEffect(() => {
     fetchInitialData();
-  }, []); // 컴포넌트가 마운트될 때 한 번만 실행
+  }, []); // ���포넌트가 마운트될 때 한 번만 실행
 
   const fetchInitialData = async () => {
     try {
@@ -351,7 +355,7 @@ const MainMenu = () => {
 
     setOpenTabs(prevTabs => {
       const tabIndex = prevTabs.indexOf(tabToClose);
-      if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 없음
+      if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 음
 
       const updatedTabs = prevTabs.filter(tab => tab !== tabToClose);
       
@@ -473,9 +477,18 @@ const MainMenu = () => {
     );
   };
 
+  const handleLogout = () => {
+    // Perform any necessary logout actions here (e.g., clearing tokens)
+    localStorage.removeItem('LoginResults'); // Clear login data
+    navigate('/login'); // Navigate to the Login page
+  };
+
   return (
     <AppContainer isLoading={isLoading}>
       <Header>
+        <ButtonContainer>
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </ButtonContainer>
         <TabMenu>
           {menuData.mainMenus.map(mainMenu => (
             <Tab 
