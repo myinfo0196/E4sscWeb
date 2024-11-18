@@ -31,7 +31,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
     const savedConditions = localStorage.getItem('w_ac01040Conditions');
     return savedConditions ? JSON.parse(savedConditions) : {
-      includeDiscarded: '',
+      includeDiscarded: false,
     };
   });
   const [results, setResults] = useState([]);
@@ -288,7 +288,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
             <Input
               type="checkbox"
               name="includeDiscarded"
-              checked={JSON.parse(localStorage.getItem('w_ac01040Conditions')).includeDiscarded || false}
+              checked={conditions.includeDiscarded}
               onChange={handleInputChange}
             />
           </Label>
