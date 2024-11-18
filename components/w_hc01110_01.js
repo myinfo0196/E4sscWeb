@@ -174,7 +174,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
             <Label>거래처명</Label>
             <Input name="HC11020" value={editedItem.HC11020 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
             <Label>사업자번호</Label>
-            <Input name="HC11030" value={editedItem.HC11030 || ''} onChange={handleChange} />
+            <Input name="HC11030" value={editedItem.HC11030 || ''} onChange={handleChange} style={{ flex: '0', width:'120px' }}/>
           </InputGroup>
           <InputGroup>
             <Label>대표자명</Label>
@@ -187,7 +187,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
             <Label>우편번호</Label>
             <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
             <PostalSearch onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
-            <Label style={{ width:'250px'}}>주 소</Label>
+            <Label style={{ width:'50px'}}>주 소</Label>
             <Input name="HC11150" value={editedItem.HC11150 || ''} onChange={handleChange} />
           </InputGroup>
           <InputGroup>
