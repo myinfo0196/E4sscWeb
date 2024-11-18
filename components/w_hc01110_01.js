@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
+import PostalSearch from './PostalSearch'; // Import the new PostalSearch component
 
 const ButtonGroup = styled.div`
 display: flex;
@@ -28,6 +29,7 @@ color: white;
 
 const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   const [editedItem, setEditedItem] = useState(item);
+  const [isPopupOpen, setIsPopupOpen] = useState(false); // Popup 상태 추가
 
   useEffect(() => {
     setEditedItem(item); // Update editedItem when item changes
@@ -143,8 +145,15 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
     }
   };
 
+  const handlePostalSelect = (postalCode, address) => {
+    setEditedItem(prev => ({
+      ...prev,
+      HC11130: postalCode,
+      HC11150: address
+    }));
+  };
+
   return (
-    // 모달이 열릴 때만 렌더링
     <ModalBackground>
       <ModalContent>
         <TitleArea>
@@ -153,7 +162,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         <ContentArea>
           <InputGroup>
             <Label>거래처코드</Label>
-            <Input name="HC11010" value={editedItem.HC11010} onChange={handleChange} style={{ width: '5px' }} />
+            <Input name="HC11010" value={editedItem.HC11010} onChange={handleChange} style={{ flex: '0', width: '65px', marginRight: '5px' }} />
             <Label>거래처구분</Label>
             <Select name="HC11011" value={editedItem.HC11011} onChange={handleChange} >
               {JSON.parse(localStorage.getItem('CommData')).filter(data => data.hz05020 === '011').map(data => (
@@ -171,13 +180,14 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
             <Label>대표자명</Label>
             <Input name="HC11040" value={editedItem.HC11040 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
             <Label>법인 번호</Label>
-            <Input name="HC11080" value={editedItem.HC11080 || ''} onChange={handleChange} size={6} maxLength={6} />
-            -<Input name="HC11090" value={editedItem.HC11090 || ''} onChange={handleChange} size={7} maxLength={7} />
+            <Input name="HC11080" value={editedItem.HC11080 || ''} onChange={handleChange} size={6} maxLength={6} style={{ flex: '0', width:'95px' }}/>
+            -<Input name="HC11090" value={editedItem.HC11090 || ''} onChange={handleChange} size={7} maxLength={7} style={{ flex: '0', width:'105px' }}/>
           </InputGroup>
           <InputGroup>
             <Label>우편번호</Label>
-            <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
-            <Label>주 소</Label>
+            <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
+            <PostalSearch onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
+            <Label style={{ width:'250px'}}>주 소</Label>
             <Input name="HC11150" value={editedItem.HC11150 || ''} onChange={handleChange} />
           </InputGroup>
           <InputGroup>

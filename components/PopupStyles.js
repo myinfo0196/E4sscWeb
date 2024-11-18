@@ -42,7 +42,8 @@ margin-bottom: 10px;
 `;
 
 export const Label = styled.label`
-width: 75px;
+width: 80px;
+margin-left: 5px;
 margin-right: 5px;
 font-weight: bold;
 `;
@@ -56,8 +57,10 @@ font-size: 14px;
 `;
 
 export const Select = styled.select`
-  padding: 5px;
-  width: 200px;
+  flex: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
 `;
 
 
