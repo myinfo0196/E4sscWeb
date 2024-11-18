@@ -26,7 +26,7 @@ const CancelButton = styled(Button)`
   color: white;
 `;
 
-const w_ac01040_01 = ({ item = {}, onClose, onSave, mode, title }) => {
+const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   const [editedItem, setEditedItem] = useState(item);
 
   useEffect(() => {

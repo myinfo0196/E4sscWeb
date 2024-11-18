@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import W_AC01040_01 from './w_ac01040_01';
+import PrintModal from './PrintModal';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import PrintModal from './PrintModal';
 import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
 import generatePdf from './pdfGenerator'; // Import the PDF generator
 
@@ -42,15 +42,15 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [modalTitle, setModalTitle] = useState('');
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData1 || []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const fetchPermissions = useCallback(async () => {
-    const response = await new Promise(resolve => {
-      const timer = setTimeout(() => {
-        resolve({ view: true, add: true, update: true, delete: true, print: true });
-      }, 1000);
-      return () => clearTimeout(timer);
-    });
+    const response = await new Promise(resolve => 
+      {  const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true, print: true }), 1000);
+         return () => clearTimeout(timer);
+      }
+    );
     setPermissions(response);
     if (onPermissionsChange) {
       onPermissionsChange(response);
@@ -318,6 +318,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       {modalMode && (
         <W_AC01040_01
           item={modalMode === 'create' ? {} : selectedItem}
+          isOpen={isModalOpen} 
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
           mode={modalMode}
