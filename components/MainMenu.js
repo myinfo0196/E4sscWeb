@@ -480,7 +480,7 @@ const MainMenu = () => {
   const handleLogout = () => {
     // Perform any necessary logout actions here (e.g., clearing tokens)
     localStorage.removeItem('LoginResults'); // Clear login data
-    window.location.href = '/login'; // Redirect to the login page to ensure all state is reset
+    window.location.href = '/'; // Redirect to the login page to ensure all state is reset
   };
 
   return (
