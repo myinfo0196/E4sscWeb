@@ -18,9 +18,9 @@ const columnDefs = [
   { field: 'F04010', headerName: '코드', width: 100 },
   { field: 'F04030', headerName: '관리명칭', width: 300 },
   { field: 'F04020', headerName: '번호', width: 250 },
-  { field: 'F04100', headerName: '개설일자', width: 100 },
-  { field: 'F04110', headerName: '만기일자', width: 100 },
-  { field: 'F04120', headerName: '폐기일자', width: 100 }
+  { field: 'F04100', headerName: '개설일자', width: 110 },
+  { field: 'F04110', headerName: '만기일자', width: 110 },
+  { field: 'F04120', headerName: '폐기일자', width: 110 }
 ];
 
 
