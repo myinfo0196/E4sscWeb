@@ -46,7 +46,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .join('&');
           }
         });        
-        setEditedItem(response.data.data.result[0]);
+        const formattedItem = { ...response.data.data.result[0], F04100: response.data.data.result[0].F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3') };
+        setEditedItem(formattedItem);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -76,7 +77,11 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         // 원본 item과 비교하여 변경된 필드만 params에 추가
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
-            params[key] = editedItem[key];
+            if (key === 'F04100') {
+              params[key] = editedItem[key].replace(/\./g, '');
+            } else {
+              params[key] = editedItem[key];
+            }
           }
         });
 
@@ -102,7 +107,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           F04010: editedItem.F04010 || '',
           F04020: editedItem.F04020 || '',
           F04030: editedItem.F04030 || '',
-          F04100: editedItem.F04100 || '',
+          F04100: editedItem.F04100 ? editedItem.F04100.replace(/\./g, '') : '' || '',
           F04110: editedItem.F04110 || '',
           F04120: editedItem.F04120 || ' ',
           F04130: editedItem.F04130 || '0',
