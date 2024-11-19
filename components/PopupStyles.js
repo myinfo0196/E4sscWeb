@@ -18,6 +18,7 @@ border-radius: 8px;
 width: 750px;
 max-width: 90%;
 overflow: hidden;
+margin-top: 20px;
 `;
 
 export const TitleArea = styled.div`
