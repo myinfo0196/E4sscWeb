@@ -142,7 +142,6 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   };
 
   return (
-    isOpen && (
       <div className="modal">
         <Draggable>
           <div className="modal-header" onMouseDown={e => e.stopPropagation()}>
@@ -200,7 +199,6 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           </ModalBackground>
         </div>    
       </div>    
-    )
   );
 };
 
