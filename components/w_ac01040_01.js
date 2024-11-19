@@ -46,7 +46,12 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .join('&');
           }
         });
-        setEditedItem(response.data.data.result[0]);
+        
+        if (response.data && response.data.data && response.data.data.result) {
+          setEditedItem(response.data.data.result[0]);
+        } else {
+          throw new Error('Invalid response structure');
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
