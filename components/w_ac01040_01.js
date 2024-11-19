@@ -161,21 +161,21 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           </InputGroup>
           <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
             <Label>개설일자</Label>
-            <Input name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
+            <Input type="date" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
             <Label>금 액</Label>
-            <Input name="F04130" value={editedItem.F04130} onChange={handleChange} />
+            <Input name="F04130" value={editedItem.F04130.toLocaleString()} onChange={handleChange} style={{ textAlign: 'right' }} />
           </InputGroup>
           <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
             <Label>만기일자</Label>
-            <Input name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
+            <Input type="date"  name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
             <Label>년이자율</Label>
-            <Input name="F04140" value={editedItem.F04140} onChange={handleChange} />
+            <Input name="F04140" value={editedItem.F04140} onChange={handleChange} style={{ textAlign: 'right' }} />
           </InputGroup>
           <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
             <Label>폐기일자</Label>
-            <Input name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
+            <Input type="date"  name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
             <Label>월상환액</Label>
-            <Input name="F04150" value={editedItem.F04150} onChange={handleChange} />
+            <Input name="F04150" value={editedItem.F04150} onChange={handleChange} style={{ textAlign: 'right' }} />
           </InputGroup>
           <InputGroup>
             <Label>비 고</Label>
