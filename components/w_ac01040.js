@@ -127,9 +127,9 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         
         const formattedResults = newResults.map(item => {
           const formattedItem = { ...item };
-          formattedItem.F04100 = formattedItem.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
-          formattedItem.F04110 = formattedItem.F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
-          formattedItem.F04120 = formattedItem.F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+          formattedItem.F04100 = formattedItem.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+          formattedItem.F04110 = formattedItem.F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+          formattedItem.F04120 = formattedItem.F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
           return formattedItem;
         });
         
