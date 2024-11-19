@@ -154,7 +154,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   return (
     <ModalBackground>
-      <Draggable handle=".modal-header" cancel="button">
+      <Draggable>
         <ModalContent>
           <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
             <h2>{title}</h2>
