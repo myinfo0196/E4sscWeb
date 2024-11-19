@@ -83,6 +83,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           if (item[key] !== editedItem[key]) {
             if (key === 'F04100' || key === 'F04110' || key === 'F04120') {
               params[key] = editedItem[key].replace(/\-/g, '') || ' ';
+            } if (key === 'F04130' || key === 'F04140' || key === 'F04150') {
+              params[key] = editedItem[key].replace(/,/g, '') || '0';
             } else {
               params[key] = editedItem[key];
             }
@@ -115,7 +117,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           F04110: editedItem.F04110 ? editedItem.F04110.replace(/\-/g, '') : '' || '',
           F04120: editedItem.F04120 ? editedItem.F04120.replace(/\-/g, '') : '' || ' ',
           F04130: editedItem.F04130 ? Number(editedItem.F04130.replace(/,/g, '')) : '0',
-          F04140: editedItem.F04140 || '0',
+          F04140: editedItem.F04140 ? Number(editedItem.F04140.replace(/,/g, '')) : '0',
           F04150: editedItem.F04150 ? Number(editedItem.F04150.replace(/,/g, '')) : '0',
           F04160: editedItem.F04160 || '',
           F04200: 'SMIS'
