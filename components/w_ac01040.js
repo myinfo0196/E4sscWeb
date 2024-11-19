@@ -125,7 +125,6 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
         
-        const updatedResults = { ...allResults };
         newResults.forEach(item => {
           if (!item.F04100) {
             item.F04100 = item.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
@@ -138,7 +137,8 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           }
           updatedResults[item.F04010] = item;
         });
-
+        const updatedResults = { ...allResults };
+        
         setAllResults(updatedResults);
         setResults(newResults);
         setData(newResults);
