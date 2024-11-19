@@ -46,7 +46,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .join('&');
           }
         });        
-        const formattedItem = { ...response.data.data.result[0], F04100: response.data.data.result[0].F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3') };
+        const formattedItem = { ...response.data.data.result[0], F04100: new Date(response.data.data.result[0].F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3')).toLocaleDateString() };
         setEditedItem(formattedItem);
       } catch (error) {
         console.error("Error fetching data:", error);
