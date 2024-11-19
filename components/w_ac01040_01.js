@@ -175,7 +175,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               </InputGroup>
               <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
                 <Label>개설일자</Label>
-                <Input type="date" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
+                <Input type="text" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
                 <Label>금 액</Label>
                 <Input name="F04130" value={editedItem.F04130.toLocaleString()} onChange={handleChange} style={{ textAlign: 'right' }} />
               </InputGroup>
