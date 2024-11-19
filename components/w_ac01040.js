@@ -288,7 +288,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
             <Input
               type="checkbox"
               name="includeDiscarded"
-              checked={conditions.includeDiscarded}
+              checked={conditions?.includeDiscarded || false}
               onChange={handleInputChange}
             />
           </Label>
