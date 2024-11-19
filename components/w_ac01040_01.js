@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input } from './PopupStyles'; // Import common styles
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input } from './PopupStyles'; // Import common styles
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
@@ -155,10 +155,10 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   return (
       <div className="modal">
         <Draggable handle=".modal-header">
-          <div className="modal-header" onMouseDown={e => e.stopPropagation()}>
+          <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
             <h2>{title}</h2>
             <button onClick={onClose}>Close</button>
-          </div>
+          </ModalHeader>
         </Draggable>
         <div className="modal-content">
           <ModalBackground>
