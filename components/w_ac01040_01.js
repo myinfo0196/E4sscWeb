@@ -79,8 +79,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         // 원본 item과 비교하여 변경된 필드만 params에 추가
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
-            if (key === 'F04100') {
-              params[key] = editedItem[key].replace(/\./g, '');
+            if (key === 'F04100' || key === 'F04110' || key === 'F04120') {
+              params[key] = editedItem[key].replace(/\-/g, '');
             } else {
               params[key] = editedItem[key];
             }
