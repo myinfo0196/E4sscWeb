@@ -35,7 +35,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
       try {
         const params = { 
           map: 'cd01.ac01040_s1', 
-          table: localStorage.getItem('dboTable'), 
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
           f04010: item.F04010 
         };
         const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
