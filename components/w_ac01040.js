@@ -125,26 +125,20 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
         
-        const updatedResults = { ...allResults };
-        newResults.forEach(item => {
-          if (!item.F04100) {
-            item.F04100 = item.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
-          }
-          if (!item.F04110) {
-            item.F04110 = item.F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
-          }
-          if (!item.F04120) {
-            item.F04120 = item.F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
-          }
-          updatedResults[item.F04010] = item;
+        const formattedResults = newResults.map(item => {
+          const formattedItem = { ...item };
+          formattedItem.F04100 = formattedItem.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+          formattedItem.F04110 = formattedItem.F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+          formattedItem.F04120 = formattedItem.F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+          return formattedItem;
         });
         
-        setAllResults(updatedResults);
-        setResults(newResults);
-        setData(newResults);
-        onDataChange(updatedResults);
+        setAllResults(formattedResults);
+        setResults(formattedResults);
+        setData(formattedResults);
+        onDataChange(formattedResults);
 
-        localStorage.setItem('w_ac01040Results', JSON.stringify(updatedResults));
+        localStorage.setItem('w_ac01040Results', JSON.stringify(formattedResults));
       } else {
         setError('데이터 형식이 올바르지 않습니다.');
       }
