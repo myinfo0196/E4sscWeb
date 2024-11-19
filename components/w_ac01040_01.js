@@ -80,7 +80,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
             if (key === 'F04100' || key === 'F04110' || key === 'F04120') {
-              params[key] = editedItem[key].replace(/\-/g, '') || '';
+              params[key] = editedItem[key].replace(/\-/g, '') || ' ';
             } else {
               params[key] = editedItem[key];
             }
