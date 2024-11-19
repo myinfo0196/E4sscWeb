@@ -154,7 +154,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   return (
     <ModalBackground>
-      <Draggable handle=".modal-header">
+      <Draggable handle=".modal-header" cancel="button"> {/* 버튼 클릭 시 드래그 방지 */}
         <ModalContent>
           <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
             <h2>{title}</h2>
