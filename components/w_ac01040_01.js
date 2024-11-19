@@ -114,9 +114,9 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           F04100: editedItem.F04100 ? editedItem.F04100.replace(/\-/g, '') : '' || '',
           F04110: editedItem.F04110 ? editedItem.F04110.replace(/\-/g, '') : '' || '',
           F04120: editedItem.F04120 ? editedItem.F04120.replace(/\-/g, '') : '' || ' ',
-          F04130: editedItem.F04130 || '0',
+          F04130: editedItem.F04130 ? Number(editedItem.F04130.replace(/,/g, '')) : '0',
           F04140: editedItem.F04140 || '0',
-          F04150: editedItem.F04150 || '0',
+          F04150: editedItem.F04150 ? Number(editedItem.F04150.replace(/,/g, '')) : '0',
           F04160: editedItem.F04160 || '',
           F04200: 'SMIS'
         };
