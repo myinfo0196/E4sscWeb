@@ -154,7 +154,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   return (
       <div className="modal">
-        <Draggable>
+        <Draggable handle=".modal-header">
           <div className="modal-header" onMouseDown={e => e.stopPropagation()}>
             <h2>{title}</h2>
             <button onClick={onClose}>Close</button>
@@ -163,9 +163,6 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         <div className="modal-content">
           <ModalBackground>
           <ModalContent>
-            <TitleArea>
-              <Title>{title}</Title>
-            </TitleArea>
             <ContentArea>
               <InputGroup>
                 <Label>계좌코드</Label>

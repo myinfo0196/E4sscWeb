@@ -64,4 +64,13 @@ export const Select = styled.select`
   padding: 8px;
 `;
 
+export const ModalHeader = styled.div`
+  background-color: blue;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+`;
+
 
