@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input } from './PopupStyles'; // Import common styles
+import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -141,53 +142,65 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   };
 
   return (
-    <ModalBackground>
-      <ModalContent>
-        <TitleArea>
-          <Title>{title}</Title>
-        </TitleArea>
-        <ContentArea>
-          <InputGroup>
-            <Label>계좌코드</Label>
-            <Input name="F04010" value={editedItem.F04010} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>번 호</Label>
-            <Input name="F04020" value={editedItem.F04020} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>명 칭</Label>
-            <Input name="F04030" value={editedItem.F04030} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
-            <Label>개설일자</Label>
-            <Input type="date" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
-            <Label>금 액</Label>
-            <Input name="F04130" value={editedItem.F04130.toLocaleString()} onChange={handleChange} style={{ textAlign: 'right' }} />
-          </InputGroup>
-          <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
-            <Label>만기일자</Label>
-            <Input type="date"  name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
-            <Label>년이자율</Label>
-            <Input name="F04140" value={editedItem.F04140} onChange={handleChange} style={{ textAlign: 'right' }} />
-          </InputGroup>
-          <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
-            <Label>폐기일자</Label>
-            <Input type="date"  name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
-            <Label>월상환액</Label>
-            <Input name="F04150" value={editedItem.F04150} onChange={handleChange} style={{ textAlign: 'right' }} />
-          </InputGroup>
-          <InputGroup>
-            <Label>비 고</Label>
-            <Input name="F04160" value={editedItem.F04160} onChange={handleChange} />
-          </InputGroup> 
-        </ContentArea>
-        <ButtonGroup>
-          <SaveButton onClick={handleSave}>저장</SaveButton>
-          <CancelButton onClick={onClose}>취소</CancelButton>
-        </ButtonGroup>
-      </ModalContent>
-    </ModalBackground>
+    isOpen && (
+      <div className="modal">
+        <Draggable>
+          <div className="modal-header" onMouseDown={e => e.stopPropagation()}>
+            <h2>{title}</h2>
+            <button onClick={onClose}>Close</button>
+          </div>
+        </Draggable>
+        <div className="modal-content">
+          <ModalBackground>
+          <ModalContent>
+            <TitleArea>
+              <Title>{title}</Title>
+            </TitleArea>
+            <ContentArea>
+              <InputGroup>
+                <Label>계좌코드</Label>
+                <Input name="F04010" value={editedItem.F04010} onChange={handleChange} />
+              </InputGroup>
+              <InputGroup>
+                <Label>번 호</Label>
+                <Input name="F04020" value={editedItem.F04020} onChange={handleChange} />
+              </InputGroup>
+              <InputGroup>
+                <Label>명 칭</Label>
+                <Input name="F04030" value={editedItem.F04030} onChange={handleChange} />
+              </InputGroup>
+              <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
+                <Label>개설일자</Label>
+                <Input type="date" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
+                <Label>금 액</Label>
+                <Input name="F04130" value={editedItem.F04130.toLocaleString()} onChange={handleChange} style={{ textAlign: 'right' }} />
+              </InputGroup>
+              <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
+                <Label>만기일자</Label>
+                <Input type="date"  name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
+                <Label>년이자율</Label>
+                <Input name="F04140" value={editedItem.F04140} onChange={handleChange} style={{ textAlign: 'right' }} />
+              </InputGroup>
+              <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
+                <Label>폐기일자</Label>
+                <Input type="date"  name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
+                <Label>월상환액</Label>
+                <Input name="F04150" value={editedItem.F04150} onChange={handleChange} style={{ textAlign: 'right' }} />
+              </InputGroup>
+              <InputGroup>
+                <Label>비 고</Label>
+                <Input name="F04160" value={editedItem.F04160} onChange={handleChange} />
+              </InputGroup> 
+            </ContentArea>
+            <ButtonGroup>
+              <SaveButton onClick={handleSave}>저장</SaveButton>
+              <CancelButton onClick={onClose}>취소</CancelButton>
+            </ButtonGroup>
+          </ModalContent>
+          </ModalBackground>
+        </div>    
+      </div>    
+    )
   );
 };
 

@@ -21,7 +21,7 @@ overflow: hidden;
 `;
 
 export const TitleArea = styled.div`
-background-color: #f8f9fa;
+background-color: blue;
 padding: 15px 20px;
 border-bottom: 1px solid #dee2e6;
 `;
@@ -29,6 +29,7 @@ border-bottom: 1px solid #dee2e6;
 export const Title = styled.h2`
 margin: 0;
 font-size: 18px;
+color: white;
 `;
 
 export const ContentArea = styled.div`
