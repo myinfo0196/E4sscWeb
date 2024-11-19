@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import PostalSearch from './PostalSearch'; // Import the new PostalSearch component
-import { ModalBackground, ModalContent, TitleArea, Title, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
-
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
+import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -150,56 +150,59 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
 
   return (
     <ModalBackground>
-      <ModalContent>
-        <TitleArea>
-          <Title>{title}</Title>
-        </TitleArea>
-        <ContentArea>
+      <Draggable>
+        <ModalContent>
+          <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
+            <h2>{title}</h2>
+            <button onClick={onClose}>Close</button>
+          </ModalHeader>
+          <ContentArea>
+              <InputGroup>
+                <Label>사업장코드</Label>
+              <Input name="HC01010" value={editedItem.HC01010} onChange={handleChange} maxLength={2} style={{ flex: '0', width: '40px' }} />
+            </InputGroup>
             <InputGroup>
-              <Label>사업장코드</Label>
-            <Input name="HC01010" value={editedItem.HC01010} onChange={handleChange} maxLength={2} style={{ flex: '0', width: '40px' }} />
-          </InputGroup>
-          <InputGroup>
-            <Label>사업장명칭</Label>
-            <Input name="HC01020" value={editedItem.HC01020} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>사업자번호</Label>
-            <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} onBlur={e => e.target.value = e.target.value.replace(/-/g, '')} placeholder='000-00-00000'/>
-          </InputGroup>
-          <InputGroup>
-            <Label>대표자성명</Label>
-            <Input name="HC01040" value={editedItem.HC01040} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>우편 번호</Label>
-            <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
-            <PostalSearch onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
-          </InputGroup>
-          <InputGroup>
-            <Label>사업장주소</Label>
-            <Input name="HC01080" value={editedItem.HC01080} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>업태</Label>
-            <Input name="HC01090" value={editedItem.HC01090} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>종목</Label>
-            <Input name="HC01100" value={editedItem.HC01100} onChange={handleChange} />
-          </InputGroup>
-          <InputGroup>
-            <Label>전화 번호</Label>
-            <Input name="HC01120" value={editedItem.HC01120} onChange={handleChange} />
-            <Label>FAX 번호</Label>
-            <Input name="HC01140" value={editedItem.HC01140} onChange={handleChange} />
-          </InputGroup> 
-        </ContentArea>
-        <ButtonGroup>
-          <SaveButton onClick={handleSave}>저장</SaveButton>
-          <CancelButton onClick={onClose}>취소</CancelButton>
-        </ButtonGroup>
-      </ModalContent>
+              <Label>사업장명칭</Label>
+              <Input name="HC01020" value={editedItem.HC01020} onChange={handleChange} />
+            </InputGroup>
+            <InputGroup>
+              <Label>사업자번호</Label>
+              <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} onBlur={e => e.target.value = e.target.value.replace(/-/g, '')} placeholder='000-00-00000'/>
+            </InputGroup>
+            <InputGroup>
+              <Label>대표자성명</Label>
+              <Input name="HC01040" value={editedItem.HC01040} onChange={handleChange} />
+            </InputGroup>
+            <InputGroup>
+              <Label>우편 번호</Label>
+              <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
+              <PostalSearch onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
+            </InputGroup>
+            <InputGroup>
+              <Label>사업장주소</Label>
+              <Input name="HC01080" value={editedItem.HC01080} onChange={handleChange} />
+            </InputGroup>
+            <InputGroup>
+              <Label>업태</Label>
+              <Input name="HC01090" value={editedItem.HC01090} onChange={handleChange} />
+            </InputGroup>
+            <InputGroup>
+              <Label>종목</Label>
+              <Input name="HC01100" value={editedItem.HC01100} onChange={handleChange} />
+            </InputGroup>
+            <InputGroup>
+              <Label>전화 번호</Label>
+              <Input name="HC01120" value={editedItem.HC01120} onChange={handleChange} />
+              <Label>FAX 번호</Label>
+              <Input name="HC01140" value={editedItem.HC01140} onChange={handleChange} />
+            </InputGroup> 
+          </ContentArea>
+          <ButtonGroup>
+            <SaveButton onClick={handleSave}>저장</SaveButton>
+            <CancelButton onClick={onClose}>취소</CancelButton>
+          </ButtonGroup>
+        </ModalContent>
+      </Draggable>
     </ModalBackground>
   );
 };
