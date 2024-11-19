@@ -45,13 +45,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
               .join('&');
           }
-        });
-        
-        if (response.data && response.data.data && response.data.data.result) {
-          setEditedItem(response.data.data.result[0]);
-        } else {
-          throw new Error('Invalid response structure');
-        }
+        });        
+        setEditedItem(response.data.data.result[0]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
