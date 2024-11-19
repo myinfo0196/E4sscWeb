@@ -61,7 +61,9 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditedItem(prev => ({ ...prev, [name]: value }));
+    const formattedValue = name === 'F04130' || name === 'F04150' ? 
+        Number(value.replace(/,/g, '')).toLocaleString() : value;
+    setEditedItem(prev => ({ ...prev, [name]: formattedValue }));
   };
 
   const handleSave = async () => {
@@ -179,7 +181,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
                 <Label>개설일자</Label>
                 <Input type="date" name="F04100" value={editedItem.F04100} onChange={handleChange} style={{ marginRight: '10px' }} />
                 <Label>금 액</Label>
-                <Input name="F04130" value={editedItem.F04130.toLocaleString()} onChange={handleChange} style={{ textAlign: 'right' }} />
+                <Input name="F04130" value={editedItem.F04130} onChange={handleChange} style={{ textAlign: 'right' }} />
               </InputGroup>
               <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
                 <Label>만기일자</Label>
