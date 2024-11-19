@@ -153,16 +153,16 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   };
 
   return (
-      <div className="modal">
-        <Draggable handle=".modal-header">
-          <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
-            <h2>{title}</h2>
-            <button onClick={onClose}>Close</button>
-          </ModalHeader>
-        </Draggable>
-        <div className="modal-content">
-          <ModalBackground>
-          <ModalContent>
+    <div className="modal">
+      <Draggable handle=".modal-header">
+        <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
+          <h2>{title}</h2>
+          <button onClick={onClose}>Close</button>
+        </ModalHeader>
+      </Draggable>
+      <ModalBackground>
+        <ModalContent>
+          <div className="modal-content">
             <ContentArea>
               <InputGroup>
                 <Label>계좌코드</Label>
@@ -203,10 +203,10 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               <SaveButton onClick={handleSave}>저장</SaveButton>
               <CancelButton onClick={onClose}>취소</CancelButton>
             </ButtonGroup>
-          </ModalContent>
-          </ModalBackground>
-        </div>    
-      </div>    
+          </div>
+        </ModalContent>
+      </ModalBackground>
+    </div>    
   );
 };
 
