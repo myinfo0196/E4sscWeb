@@ -13,8 +13,8 @@ import generatePdf from './pdfGenerator'; // Import the PDF generator
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
 
-// columnDefs를 컴포넌트 외부로 이동
-const columnDefs = [
+// columnDefs를 localStorage에서 불러오고 초기화
+const initialColumnDefs = JSON.parse(localStorage.getItem('w_ac01040Column')) || [
   { field: 'F04010', headerName: '코드', width: 100 },
   { field: 'F04030', headerName: '관리명칭', width: 300 },
   { field: 'F04020', headerName: '번호', width: 250 },
@@ -22,7 +22,13 @@ const columnDefs = [
   { field: 'F04110', headerName: '만기일자', width: 110 },
   { field: 'F04120', headerName: '폐기일자', width: 110 }
 ];
+const [columnDefs, setColumnDefs] = useState(initialColumnDefs);
 
+// AgGridReact에서 컬럼 변경 시 localStorage에 저장
+const onColumnChanged = useCallback((newColumnDefs) => {
+  setColumnDefs(newColumnDefs);
+  localStorage.setItem('w_ac01040Column', JSON.stringify(newColumnDefs));
+}, []);
 
 const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
@@ -307,6 +313,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
+              onColumnChanged={onColumnChanged}
               rowSelection="single"
               suppressRowClickSelection={false} // 체크박스 제거
               defaultColDef={{

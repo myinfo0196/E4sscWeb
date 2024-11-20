@@ -157,8 +157,8 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   return (
     <ModalBackground>
       <Draggable>
-        <ModalContent>
-          <ModalHeader className="modal-header" onMouseDown={e => e.stopPropagation()}>
+        <ModalContent onMouseDown={e => e.stopPropagation()}>
+          <ModalHeader className="modal-header">
             <h2>{title}</h2>
             <button onClick={onClose}>Close</button>
           </ModalHeader>

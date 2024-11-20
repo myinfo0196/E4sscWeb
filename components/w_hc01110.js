@@ -10,7 +10,7 @@ import { saveAs } from 'file-saver';
 import { CardContainer, ConditionArea, InputGroup, InputsWrapper, Label, Input, Select, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
 import generatePdf from './pdfGenerator'; // Import the PDF generator
 
-const columnDefs = [
+const initialColumnDefs = JSON.parse(localStorage.getItem('w_hc01110Column')) || [
   { field: 'HC11010', headerName: '코드', width: 100 },
   { field: 'HC11020', headerName: '거래처명', width: 300 },
   { field: 'HC11030', headerName: '사업자번호', width: 150 },
@@ -18,6 +18,13 @@ const columnDefs = [
   { field: 'HC11070', headerName: '담당자', width: 100 },
   { field: 'HC11210', headerName: '전화번호', width: 150 },
 ];
+const [columnDefs, setColumnDefs] = useState(initialColumnDefs);
+
+// AgGridReact에서 컬럼 변경 시 localStorage에 저장
+const onColumnChanged = useCallback((newColumnDefs) => {
+  setColumnDefs(newColumnDefs);
+  localStorage.setItem('w_hc01110Column', JSON.stringify(newColumnDefs));
+}, []);
 
 const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDataChange }, ref) => {
   const gridRef = useRef(null);
@@ -366,6 +373,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
+              onColumnChanged={onColumnChanged} // Add this line
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{
