@@ -14,21 +14,19 @@ import generatePdf from './pdfGenerator'; // Import the PDF generator
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
 
 // columnDefs를 컴포넌트 외부로 이동
-const initialColumnDefs = JSON.parse(localStorage.getItem('w_hc01010Column')) || [
-  { field: 'HC01010', headerName: '코드', width: 80 },
-  { field: 'HC01030', headerName: '사업자등록번호', width: 150 },
-  { field: 'HC01020', headerName: '상호', width: 200 },
-  { field: 'HC01040', headerName: '대표자', width: 100 },
-  { field: 'HC01100', headerName: '업태', width: 300 },
-  { field: 'HC01090', headerName: '업종', width: 300 }
-];
-const [columnDefs, setColumnDefs] = useState(initialColumnDefs);
-
-// AgGridReact에서 컬럼 변경 시 localStorage에 저장
-const onColumnChanged = useCallback((newColumnDefs) => {
-  setColumnDefs(newColumnDefs);
-  localStorage.setItem('w_hc01010Column', JSON.stringify(newColumnDefs));
-}, []);
+const getInitialColumnDefs = () => {
+  if (typeof window !== 'undefined') { // Check if running in the browser
+    return JSON.parse(localStorage.getItem('w_hc01010Columns')) || [
+      { field: 'HC01010', headerName: '코드', width: 80 },
+      { field: 'HC01030', headerName: '사업자등록번호', width: 150 },
+      { field: 'HC01020', headerName: '상호', width: 200 },
+      { field: 'HC01040', headerName: '대표자', width: 100 },
+      { field: 'HC01100', headerName: '업태', width: 300 },
+      { field: 'HC01090', headerName: '업종', width: 300 }
+    ];
+  }
+  return []; // Return an empty array if not in the browser
+};
 
 const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
@@ -49,6 +47,8 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData1 || []);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [columnApi, setColumnApi] = useState(null); // State to hold columnApi
+  const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
 
   const fetchPermissions = useCallback(async () => {
     // 실제 API 호출을 모방한 Promise
@@ -94,6 +94,14 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       }
     }
   }, [cachedData1]);
+
+  useEffect(() => {
+    // Check if column definitions exist in localStorage
+    const savedColumnDefs = localStorage.getItem('w_hc01010Columns');
+    if (savedColumnDefs) {
+      setColumnDefs(JSON.parse(savedColumnDefs));
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -176,9 +184,31 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleCloseModal();
   }, []);
 
-  const handleShowAllResults = () => {
-    setResults(Object.values(allResults));
-  };
+  const onGridReady = useCallback((params) => {
+    gridRef.current.api = params.api;
+    gridRef.current.columnApi = params.columnApi;
+  }, []);
+
+  const updateColumnDefs = useCallback(() => {
+    if (gridRef.current && gridRef.current.columnApi) {
+      const newColumnDefs = gridRef.current.columnApi.getAllColumns().map(col => ({
+        field: col.getColId(),
+        headerName: col.getColDef().headerName,
+        width: col.getColDef().width,
+      }));
+      setColumnDefs(newColumnDefs);
+      localStorage.setItem('w_hc01010Columns', JSON.stringify(newColumnDefs)); // Save new column order and widths
+      console.log('Updated Column Definitions:', newColumnDefs); // Log the new definitions
+    }
+  }, []);
+
+  const onColumnMoved = useCallback(() => {
+    updateColumnDefs();
+  }, [updateColumnDefs]);
+
+  const onColumnResized = useCallback(() => {
+    updateColumnDefs();
+  }, [updateColumnDefs]);
 
   useImperativeHandle(ref, () => ({
     handleSearch,
@@ -314,7 +344,9 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnChanged={onColumnChanged} // Add this line
+              onGridReady={onGridReady} // Capture grid ready event
+              onColumnMoved={onColumnMoved} // Capture column movement
+              onColumnResized={onColumnResized} // Capture column resizing
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{

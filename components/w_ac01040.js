@@ -14,21 +14,19 @@ import generatePdf from './pdfGenerator'; // Import the PDF generator
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
 
 // columnDefs를 localStorage에서 불러오고 초기화
-const initialColumnDefs = JSON.parse(localStorage.getItem('w_ac01040Column')) || [
-  { field: 'F04010', headerName: '코드', width: 100 },
-  { field: 'F04030', headerName: '관리명칭', width: 300 },
-  { field: 'F04020', headerName: '번호', width: 250 },
-  { field: 'F04100', headerName: '개설일자', width: 110 },
-  { field: 'F04110', headerName: '만기일자', width: 110 },
-  { field: 'F04120', headerName: '폐기일자', width: 110 }
-];
-const [columnDefs, setColumnDefs] = useState(initialColumnDefs);
-
-// AgGridReact에서 컬럼 변경 시 localStorage에 저장
-const onColumnChanged = useCallback((newColumnDefs) => {
-  setColumnDefs(newColumnDefs);
-  localStorage.setItem('w_ac01040Column', JSON.stringify(newColumnDefs));
-}, []);
+const getInitialColumnDefs = () => {
+  if (typeof window !== 'undefined') { // Check if running in the browser
+    return JSON.parse(localStorage.getItem('w_ac01040Columns')) || [
+      { field: 'F04010', headerName: '코드', width: 100 },
+      { field: 'F04030', headerName: '관리명칭', width: 300 },
+      { field: 'F04020', headerName: '번호', width: 250 },
+      { field: 'F04100', headerName: '개설일자', width: 110 },
+      { field: 'F04110', headerName: '만기일자', width: 110 },
+      { field: 'F04120', headerName: '폐기일자', width: 110 }
+    ];
+  }
+return []; // Return an empty array if not in the browser
+};
 
 const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
@@ -50,6 +48,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [data, setData] = useState(cachedData1 || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
 
   const fetchPermissions = useCallback(async () => {
     const response = await new Promise(resolve => 
@@ -176,9 +175,13 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleCloseModal();
   }, []);
 
-  const handleShowAllResults = () => {
-    setResults(Object.values(allResults));
-  };
+  // AgGridReact에서 컬럼 변경 시 localStorage에 저장
+  const onColumnChanged = useCallback((newColumnDefs) => {
+    setColumnDefs(newColumnDefs);
+    if (typeof window !== 'undefined') { // Check if running in the browser
+      localStorage.setItem('w_ac01040Columns', JSON.stringify(newColumnDefs));
+    }
+  }, []);
 
   useImperativeHandle(ref, () => ({
     handleSearch,
