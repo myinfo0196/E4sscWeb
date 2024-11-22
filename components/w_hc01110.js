@@ -229,7 +229,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   }, [allResults, onDataChange]);
     
   // AgGridReact에서 컬럼 변경 시 localStorage에 저장
-  const onColumnMoved = useCallback(() => {
+  const updateColumnDefs = useCallback(() => {
     if (gridRef.current && gridRef.current.api) {
       const columnState = gridRef.current.api.getColumnState();
       const currentColumnOrder = columnState.map((col) => col.colId);
@@ -405,7 +405,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnMoved={onColumnMoved} // Add this line
+              onColumnMoved={updateColumnDefs} // Add this line
+              onColumnResized={updateColumnDefs}
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{

@@ -182,7 +182,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleCloseModal();
   }, []);
 
-  const onColumnMoved = useCallback(() => {
+  const updateColumnDefs = useCallback(() => {
     if (gridRef.current && gridRef.current.api) {
       const columnState = gridRef.current.api.getColumnState();
       const currentColumnOrder = columnState.map((col) => col.colId);
@@ -338,7 +338,8 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnMoved={onColumnMoved}
+              onColumnMoved={updateColumnDefs}
+              onColumnResized={updateColumnDefs}
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{
