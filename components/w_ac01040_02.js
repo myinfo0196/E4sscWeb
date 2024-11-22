@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Title, Table, TableHeader, TableRow } from './PrintStyles'; // Import common styles
+import { Title, Table, TableHeader, TableRow } from './StylesPrint'; // Import common styles
 
 const W_AC01040_02 = forwardRef(({ data, title = "계좌코드 목록" }, ref) => {
   const formattedData = data.map(item => ({

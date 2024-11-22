@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './StylesCommon'; // Import common styles
 import generatePdf from './pdfGenerator'; // Import the PDF generator
 
 // ag-Grid 라이센스 설정 (만약 있다면)

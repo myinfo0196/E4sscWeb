@@ -11,7 +11,7 @@ const Button = styled.button`
   color: white;
 `;
 
-const PostalSearch = ({ onSelect, onClose }) => {
+const SearchPostal = ({ onSelect, onClose }) => {
   useEffect(() => {
     // Load the Daum Postcode script
     const script = document.createElement('script');
@@ -42,4 +42,4 @@ const PostalSearch = ({ onSelect, onClose }) => {
   );
 };
 
-export default PostalSearch; 
+export default SearchPostal; 

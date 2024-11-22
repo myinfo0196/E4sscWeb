@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input } from './PopupStyles'; // Import common styles
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input } from './StylesPopup'; // Import common styles
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`

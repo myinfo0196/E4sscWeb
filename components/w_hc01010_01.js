@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import PostalSearch from './PostalSearch'; // Import the new PostalSearch component
-import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from './PopupStyles'; // Import common styles
+import SearchPostal from './SearchPostal'; // Import the new SearchPostal component
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from './StylesPopup'; // Import common styles
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
@@ -176,7 +176,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
             <InputGroup>
               <Label>우편 번호</Label>
               <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
-              <PostalSearch onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
+              <SearchPostal onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
             </InputGroup>
             <InputGroup>
               <Label>사업장주소</Label>

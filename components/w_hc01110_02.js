@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Title, Table, TableHeader, TableRow } from './PrintStyles'; // Import common styles
+import { Title, Table, TableHeader, TableRow } from './StylesPrint'; // Import common styles
 
 const W_HC01110_02 = forwardRef(({ data, title = "거래처 코드관리" }, ref) => {
   const formattedData = data.map(item => ({

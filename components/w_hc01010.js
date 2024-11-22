@@ -7,8 +7,9 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PrintModal from './PrintModal';
-import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './CommonStyles'; // Import common styles
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './StylesCommon'; // Import common styles
 import generatePdf from './pdfGenerator'; // Import the PDF generator
+import SearchBusiness from './SearchBusiness.js'; // Import the new modal component
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
@@ -45,6 +46,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [data, setData] = useState(cachedData1 || []);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
+  const [isSearchBusinessOpen, setIsSearchBusinessOpen] = useState(false); // State to control the search modal
 
   const fetchPermissions = useCallback(async () => {
     // 실제 API 호출을 모방한 Promise
@@ -199,6 +201,14 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     }
   }, []);
 
+  const handleBusinessSelect = (selectedBusinessPlace) => {
+    setConditions(prevConditions => ({
+      ...prevConditions,
+      businessPlace: selectedBusinessPlace, // Update the business place in conditions
+    }));
+    setIsSearchBusinessOpen(false); // Close the modal after selection
+  };
+
   useImperativeHandle(ref, () => ({
     handleSearch,
     handleCreate: () => {
@@ -325,6 +335,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               onChange={handleInputChange}
               style={{ width: '120px' }}
             />
+            <button onClick={() => setIsSearchBusinessOpen(true)}>검색</button> {/* Button to open search modal */}
           </Label>
         </InputGroup>
       </ConditionArea>
@@ -360,6 +371,11 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           title={modalTitle}
         />
       )}
+      <SearchBusiness
+        isOpen={isSearchBusinessOpen} 
+        onClose={() => setIsSearchBusinessOpen(false)} 
+        onSelect={handleBusinessSelect} // Pass the selection handler
+      />
       <PrintModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
@@ -372,3 +388,4 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 });
 
 export default w_hc01010;
+
