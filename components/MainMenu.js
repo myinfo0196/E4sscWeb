@@ -326,6 +326,10 @@ const MainMenu = () => {
             if (currentPermissions.view) cardRef[action]();
             else alert('다운로드 권한이 없습니다.');
             break;
+          case 'handleInint':
+            if (currentPermissions.print) cardRef.handleInint();
+            else alert('출력 권한이 없습니다.');
+            break;
           default:
             console.error(`Unknown action: ${action}`);
             break;
@@ -509,6 +513,7 @@ const MainMenu = () => {
           <ActionButton onClick={() => handleAction('handleCsvDownload')} disabled={!permissions[activeTab]?.print}>CSV</ActionButton>
           <ActionButton onClick={() => handleAction('handlePdfDownload')} disabled={!permissions[activeTab]?.print}>PDF</ActionButton>
           <ActionButton onClick={() => handleAction('handleExcelDownload')} disabled={!permissions[activeTab]?.print}>엑셀</ActionButton>
+          <ActionButton onClick={() => handleAction('handleInint')} disabled={!permissions[activeTab]?.print}>초기화</ActionButton>
         </ButtonContainer>
       </Header>
       <ContentArea>

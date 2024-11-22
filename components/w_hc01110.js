@@ -62,6 +62,16 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
 
   useEffect(() => {
     fetchPermissions();
+
+    // localStorage에서 w_hc01110Columns 값을 가져와서 설정
+    const storedColumnDefs = JSON.parse(localStorage.getItem('w_hc01110Columns'));
+    if (storedColumnDefs) {
+      setColumnDefs(storedColumnDefs);
+    } else {
+      const initialColumnDefs = getInitialColumnDefs(); // 기본 열 정의 설정
+      setColumnDefs(initialColumnDefs);
+      localStorage.setItem('w_hc01110Columns', JSON.stringify(initialColumnDefs)); // localStorage에 저장
+    }
   }, []);
 
   useEffect(() => {
@@ -219,10 +229,20 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   }, [allResults, onDataChange]);
     
   // AgGridReact에서 컬럼 변경 시 localStorage에 저장
-  const onColumnChanged = useCallback((newColumnDefs) => {
-    setColumnDefs(newColumnDefs);
-    if (typeof window !== 'undefined') { // Check if running in the browser
-      localStorage.setItem('w_hc01110Columns', JSON.stringify(newColumnDefs));
+  const onColumnMoved = useCallback(() => {
+    if (gridRef.current && gridRef.current.api) {
+      const columnState = gridRef.current.api.getColumnState();
+      const currentColumnOrder = columnState.map((col) => col.colId);
+      const newColumnDefs = currentColumnOrder.map((colId) => {
+        const col = gridRef.current.api.getColumns().find(col => col.getColId() === colId);
+        return {
+          field: col.getColId(),
+          headerName: col.getColDef().headerName,
+          width: col.getActualWidth(), // Use getActualWidth to get the current width of the column
+        };
+      });
+      setColumnDefs(newColumnDefs);
+      localStorage.setItem('w_hc01110Columns', JSON.stringify(newColumnDefs)); // Save new column definitions to localStorage
     }
   }, []);
 
@@ -330,6 +350,11 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     handlePrint: () => {
       setIsPrintModalOpen(true);
     },
+    handleInint: () => {
+      localStorage.removeItem('w_hc01110Results');
+      localStorage.removeItem('w_hc01110Columns');
+      setColumnDefs(getInitialColumnDefs());
+    },
     //handleShowAllResults,
     //refetchPermissions: fetchPermissions,
   }));
@@ -380,7 +405,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnChanged={onColumnChanged} // Add this line
+              onColumnMoved={onColumnMoved} // Add this line
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{

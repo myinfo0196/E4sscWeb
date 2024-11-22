@@ -64,7 +64,17 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   useEffect(() => {
     fetchPermissions();
-  }, []); // Empty dependency array to run only once when mounted
+
+    // localStorage에서 w_ac01040Columns 값을 가져와서 설정
+    const storedColumnDefs = JSON.parse(localStorage.getItem('w_ac01040Columns'));
+    if (storedColumnDefs) {
+      setColumnDefs(storedColumnDefs);
+    } else {
+      const initialColumnDefs = getInitialColumnDefs(); // 기본 열 정의 설정
+      setColumnDefs(initialColumnDefs);
+      localStorage.setItem('w_ac01040Columns', JSON.stringify(initialColumnDefs)); // localStorage에 저장
+    }
+  }, []);
 
   useEffect(() => {
     if (cachedData1) {
@@ -175,11 +185,20 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleCloseModal();
   }, []);
 
-  // AgGridReact에서 컬럼 변경 시 localStorage에 저장
-  const onColumnChanged = useCallback((newColumnDefs) => {
-    setColumnDefs(newColumnDefs);
-    if (typeof window !== 'undefined') { // Check if running in the browser
-      localStorage.setItem('w_ac01040Columns', JSON.stringify(newColumnDefs));
+  const onColumnMoved = useCallback(() => {
+    if (gridRef.current && gridRef.current.api) {
+      const columnState = gridRef.current.api.getColumnState();
+      const currentColumnOrder = columnState.map((col) => col.colId);
+      const newColumnDefs = currentColumnOrder.map((colId) => {
+        const col = gridRef.current.api.getColumns().find(col => col.getColId() === colId);
+        return {
+          field: col.getColId(),
+          headerName: col.getColDef().headerName,
+          width: col.getActualWidth(), // Use getActualWidth to get the current width of the column
+        };
+      });
+      setColumnDefs(newColumnDefs);
+      localStorage.setItem('w_ac01040Columns', JSON.stringify(newColumnDefs)); // Save new column definitions to localStorage
     }
   }, []);
 
@@ -287,6 +306,11 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handlePrint: () => {
       setIsPrintModalOpen(true);
     },
+    handleInint: () => {
+      localStorage.removeItem('w_ac01040Results');
+      localStorage.removeItem('w_ac01040Columns');
+      setColumnDefs(getInitialColumnDefs());
+    },
     //handleShowAllResults,
     //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
   }));
@@ -316,7 +340,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnChanged={onColumnChanged}
+              onColumnMoved={onColumnMoved}
               rowSelection="single"
               suppressRowClickSelection={false} // 체크박스 제거
               defaultColDef={{

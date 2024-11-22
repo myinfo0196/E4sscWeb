@@ -15,18 +15,15 @@ import generatePdf from './pdfGenerator'; // Import the PDF generator
 
 // columnDefs를 컴포넌트 외부로 이동
 const getInitialColumnDefs = () => {
-  if (typeof window !== 'undefined') { // Check if running in the browser
-    return JSON.parse(localStorage.getItem('w_hc01010Columns')) || [
-      { field: 'HC01010', headerName: '코드', width: 80 },
-      { field: 'HC01030', headerName: '사업자등록번호', width: 150 },
-      { field: 'HC01020', headerName: '상호', width: 200 },
-      { field: 'HC01040', headerName: '대표자', width: 100 },
-      { field: 'HC01100', headerName: '업태', width: 300 },
-      { field: 'HC01090', headerName: '업종', width: 300 }
-    ];
-  }
-  return []; // Return an empty array if not in the browser
-};
+  return JSON.parse(localStorage.getItem('w_hc01010Columns')) || [
+    { field: 'HC01010', headerName: '코드', width: 80 },
+    { field: 'HC01030', headerName: '사업자등록번호', width: 150 },
+    { field: 'HC01020', headerName: '상호', width: 200 },
+    { field: 'HC01040', headerName: '대표자', width: 100 },
+    { field: 'HC01100', headerName: '업태', width: 300 },
+    { field: 'HC01090', headerName: '업종', width: 300 }
+  ];
+}
 
 const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
   const gridRef = useRef(null);
@@ -47,7 +44,6 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [allResults, setAllResults] = useState({});
   const [data, setData] = useState(cachedData1 || []);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [columnApi, setColumnApi] = useState(null); // State to hold columnApi
   const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
 
   const fetchPermissions = useCallback(async () => {
@@ -68,6 +64,16 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   useEffect(() => {
     fetchPermissions();
+
+    // localStorage에서 w_hc01010Columns 값을 가져와서 설정
+    const storedColumnDefs = JSON.parse(localStorage.getItem('w_hc01010Columns'));
+    if (storedColumnDefs) {
+      setColumnDefs(storedColumnDefs);
+    } else {
+      const initialColumnDefs = getInitialColumnDefs(); // 기본 열 정의 설정
+      setColumnDefs(initialColumnDefs);
+      localStorage.setItem('w_hc01010Columns', JSON.stringify(initialColumnDefs)); // localStorage에 저장
+    }
   }, []);
 
   useEffect(() => {
@@ -95,14 +101,6 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     }
   }, [cachedData1]);
 
-  useEffect(() => {
-    // Check if column definitions exist in localStorage
-    const savedColumnDefs = localStorage.getItem('w_hc01010Columns');
-    if (savedColumnDefs) {
-      setColumnDefs(JSON.parse(savedColumnDefs));
-    }
-  }, []);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log(`Input changed: ${name} = ${value}`);
@@ -118,7 +116,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     setError(null);
     // 검색 시 cachedData 삭제
     onDataChange(null);
-
+    
     try {
       const params = {
         map: 'cd01.cd01010_s',
@@ -184,31 +182,22 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handleCloseModal();
   }, []);
 
-  const onGridReady = useCallback((params) => {
-    gridRef.current.api = params.api;
-    gridRef.current.columnApi = params.columnApi;
-  }, []);
-
-  const updateColumnDefs = useCallback(() => {
-    if (gridRef.current && gridRef.current.columnApi) {
-      const newColumnDefs = gridRef.current.columnApi.getAllColumns().map(col => ({
-        field: col.getColId(),
-        headerName: col.getColDef().headerName,
-        width: col.getColDef().width,
-      }));
+  const onColumnMoved = useCallback(() => {
+    if (gridRef.current && gridRef.current.api) {
+      const columnState = gridRef.current.api.getColumnState();
+      const currentColumnOrder = columnState.map((col) => col.colId);
+      const newColumnDefs = currentColumnOrder.map((colId) => {
+        const col = gridRef.current.api.getColumns().find(col => col.getColId() === colId);
+        return {
+          field: col.getColId(),
+          headerName: col.getColDef().headerName,
+          width: col.getActualWidth(), // Use getActualWidth to get the current width of the column
+        };
+      });
       setColumnDefs(newColumnDefs);
-      localStorage.setItem('w_hc01010Columns', JSON.stringify(newColumnDefs)); // Save new column order and widths
-      console.log('Updated Column Definitions:', newColumnDefs); // Log the new definitions
+      localStorage.setItem('w_hc01010Columns', JSON.stringify(newColumnDefs)); // Save new column definitions to localStorage
     }
   }, []);
-
-  const onColumnMoved = useCallback(() => {
-    updateColumnDefs();
-  }, [updateColumnDefs]);
-
-  const onColumnResized = useCallback(() => {
-    updateColumnDefs();
-  }, [updateColumnDefs]);
 
   useImperativeHandle(ref, () => ({
     handleSearch,
@@ -314,6 +303,11 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handlePrint: () => {
       setIsPrintModalOpen(true);
     },
+    handleInint: () => {
+      localStorage.removeItem('w_hc01010Results');
+      localStorage.removeItem('w_hc01010Columns');
+      setColumnDefs(getInitialColumnDefs());
+    },
     //handleShowAllResults,
     //refetchPermissions: fetchPermissions, // 권한을 다시 가져오는 메서드 추가
   }));
@@ -344,9 +338,7 @@ const w_hc01010 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onGridReady={onGridReady} // Capture grid ready event
-              onColumnMoved={onColumnMoved} // Capture column movement
-              onColumnResized={onColumnResized} // Capture column resizing
+              onColumnMoved={onColumnMoved}
               rowSelection="single"
               suppressRowDeselection={true}
               defaultColDef={{
