@@ -9,6 +9,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { CardContainer, ConditionArea, InputGroup, InputsWrapper, Label, Input, Select, ResultArea, GridContainer } from './StylesCommon'; // Import common styles
 import generatePdf from './pdfGenerator'; // Import the PDF generator
+import SearchDeal from './SearchDeal.js'; // Import the new modal component
 
 const getInitialColumnDefs = () => {
   if (typeof window !== 'undefined') { // Check if running in the browser
@@ -31,7 +32,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     // localStorage에서 이전에 저장된 조건들을 불러옵니다.
     const savedConditions = localStorage.getItem('w_hc01110Conditions');
     return savedConditions ? JSON.parse(savedConditions) : {
-      keyword: '',
+      dealName: '',
       customerType: '1',
       representative: '',
     };
@@ -47,6 +48,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
+  const [isSearchDealOpen, setIsSearchDealOpen] = useState(false); // State to control the search modal
 
   const fetchPermissions = useCallback(async () => {
     const response = await new Promise(resolve => 
@@ -123,8 +125,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         HC11011: conditions.customerType,
       };
 
-      if (conditions.keyword.trim()) {
-        params.HC11020 = conditions.keyword.trim();
+      if (conditions.dealName.trim()) {
+        params.HC11020 = conditions.dealName.trim();
       }
 
       if (conditions.representative.trim()) {
@@ -246,6 +248,14 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     }
   }, []);
 
+  const handleDealSelect = (selectedDeal) => {
+    setConditions(prevConditions => ({
+      ...prevConditions,
+      dealName: selectedDeal, // Update the business place in conditions
+    }));
+    setIsSearchDealOpen(false); // Close the modal after selection
+  };
+
   useImperativeHandle(ref, () => ({
     handleSearch,
     handleCreate: () => {
@@ -364,13 +374,16 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
       <ConditionArea>
         <InputsWrapper>
           <InputGroup>
-            <Label>거래처명:</Label>
+            <Label>거래처명:
             <Input
               type="text"
-              name="keyword"
-              value={conditions.keyword}
+              name="dealName"
+              value={conditions.dealName}
               onChange={handleInputChange}
+              style={{ width: '120px' }}
             />
+            <button onClick={() => setIsSearchDealOpen(true)}>검색</button> {/* Button to open search modal */}
+            </Label>
           </InputGroup>
           <InputGroup>
             <Label>거래처구분:</Label>
@@ -428,6 +441,11 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
           title={modalTitle}
         />
       )}
+      <SearchDeal
+        isOpen={isSearchDealOpen} 
+        onClose={() => setIsSearchDealOpen(false)} 
+        onSelect={handleDealSelect} // Pass the selection handler
+      />
       <PrintModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
