@@ -156,9 +156,9 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   return (
     <ModalBackground>
-      <Draggable handle=".draggable-modal-header">
+      <Draggable cancel="input, textarea, select, button, [role='button'], [role='gridcell'], .ag-cell, .ag-header-cell, .ag-root-wrapper">
         <ModalContent onMouseDown={e => e.stopPropagation()}>
-          <ModalHeader className="modal-header draggable-modal-header">
+          <ModalHeader className="modal-header">
             <h2>{title}</h2>
             <button onClick={onClose}>Close</button>
           </ModalHeader>
