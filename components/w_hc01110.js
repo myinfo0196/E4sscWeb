@@ -51,10 +51,10 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
   const [isSearchDealOpen, setIsSearchDealOpen] = useState(false); // State to control the search modal
 
   const fetchPermissions = useCallback(async () => {
-    const response = await new Promise(resolve => 
-      { const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true, print: true }), 1000);
-        return () => clearTimeout(timer);
-      }
+    const response = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true, print: true }), 1000);
+      return () => clearTimeout(timer);
+    }
     );
     setPermissions(response);
     if (onPermissionsChange) {
@@ -106,7 +106,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     console.log(`Input changed: ${name} = ${value}`);
     const updatedConditions = { ...conditions, [name]: value };
     setConditions(updatedConditions);
-    
+
     // 조건이 변경될 때마다 localStorage에 저장합니다.
     localStorage.setItem('w_hc01110Conditions', JSON.stringify(updatedConditions));
   };
@@ -117,7 +117,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     // 검색 시 cachedData 삭제
     setData([]); // Reset cachedData to an empty array
     onDataChange(null); // Ensure this does not cause a re-render loop
-    
+
     try {
       const params = {
         map: 'cd01.cd01110_s',
@@ -135,20 +135,20 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
 
       console.log('Search params:', params);
 
-      const response = await axiosInstance.get('comm.jsp', { 
+      const response = await axiosInstance.get('comm.jsp', {
         params,
         paramsSerializer: params => {
           return Object.entries(params)
-          .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-          .join('&');
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join('&');
         }
       });
-      
+
       console.log('API response:', response.data);
 
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
-        
+
         // Ensure newResults is an array of objects with keys matching columnDefs
         const updatedResults = { ...allResults };
         newResults.forEach(item => {
@@ -178,6 +178,12 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     setSelectedItem(event.data); // Set the selected item when the row is clicked
   }, []);
 
+  const handleRowDoubleClick = useCallback((event) => {
+    setSelectedItem(event.data);
+    setModalMode('edit');
+    setModalTitle('거래처 정보 수정');
+  }, []);
+
   const handleCloseModal = useCallback(() => {
     setSelectedItem(null);
     setModalMode(null);
@@ -190,7 +196,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     if (editedItem.isNew) {
       // 새로운 항목 추가
       setResults(prevResults => [...prevResults, editedItem]);
-      
+
       // allResults 업데이트
       setAllResults(prev => ({
         ...prev,
@@ -206,12 +212,12 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
       }
     } else {
       // 기존 항목 수정
-      setResults(prevResults => 
-        prevResults.map(item => 
+      setResults(prevResults =>
+        prevResults.map(item =>
           item.HC11010 === editedItem.HC11010 ? editedItem : item
         )
       );
-      
+
       // allResults 업데이트
       setAllResults(prev => ({
         ...prev,
@@ -226,10 +232,10 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         });
       }
     }
-    
+
     handleCloseModal();
   }, [allResults, onDataChange]);
-    
+
   // AgGridReact에서 컬럼 변경 시 localStorage에 저장
   const updateColumnDefs = useCallback(() => {
     if (gridRef.current && gridRef.current.api) {
@@ -276,10 +282,10 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         const confirmDelete = window.confirm('선택한 거래처를 삭제하시겠습니까?');
         if (confirmDelete) {
           try {
-            const params = { 
-              map: 'cd01.cd01110_d', 
-              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
-              HC11010: selectedItem.HC11010 
+            const params = {
+              map: 'cd01.cd01110_d',
+              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+              HC11010: selectedItem.HC11010
             };
 
             const response = await axiosInstance.post('comm_delete.jsp', params);
@@ -329,8 +335,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
     handlePdfDownload: () => {
       const gridElement = document.querySelector('.ag-theme-alpine');
       if (gridElement) {
-        const header = ['코드','거래처명','사업자번호','대표자','담당자','전화번호'];
-      
+        const header = ['코드', '거래처명', '사업자번호', '대표자', '담당자', '전화번호'];
+
         const rows = [];
         gridRef.current.api.forEachNode(node => {
           rows.push(node.data); // Collect data from the grid
@@ -375,14 +381,14 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         <InputsWrapper>
           <InputGroup>
             <Label>거래처명:
-            <Input
-              type="text"
-              name="dealName"
-              value={conditions.dealName}
-              onChange={handleInputChange}
-              style={{ width: '120px' }}
-            />
-            <button onClick={() => setIsSearchDealOpen(true)}>검색</button> {/* Button to open search modal */}
+              <Input
+                type="text"
+                name="dealName"
+                value={conditions.dealName}
+                onChange={handleInputChange}
+                style={{ width: '120px' }}
+              />
+              <button onClick={() => setIsSearchDealOpen(true)}>검색</button> {/* Button to open search modal */}
             </Label>
           </InputGroup>
           <InputGroup>
@@ -418,7 +424,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
-              onColumnMoved={updateColumnDefs} // Add this line
+              onRowDoubleClicked={handleRowDoubleClick}
+              onColumnMoved={updateColumnDefs}
               onColumnResized={updateColumnDefs}
               rowSelection="single"
               suppressRowDeselection={true}
@@ -434,7 +441,7 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
       {modalMode && (
         <W_HC01110_01
           item={modalMode === 'create' ? {} : selectedItem}
-          isOpen={isModalOpen} 
+          isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
           mode={modalMode}
@@ -442,8 +449,8 @@ const w_hc01110 = forwardRef(({ menuName, onPermissionsChange, cachedData2, onDa
         />
       )}
       <SearchDeal
-        isOpen={isSearchDealOpen} 
-        onClose={() => setIsSearchDealOpen(false)} 
+        isOpen={isSearchDealOpen}
+        onClose={() => setIsSearchDealOpen(false)}
         onSelect={handleDealSelect} // Pass the selection handler
       />
       <PrintModal
