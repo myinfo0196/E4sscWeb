@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
-import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
+import axiosInstance from '../axiosConfig'; // Axios 인스턴스 import
 import W_AC01040_01 from './w_ac01040_01';
-import PrintModal from './PrintModal';
+import PrintModal from '../PrintModal';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from './StylesCommon'; // Import common styles
-import generatePdf from './pdfGenerator'; // Import the PDF generator
+import { CardContainer, ConditionArea, InputGroup, Label, Input, ResultArea, GridContainer } from '../StylesCommon'; // Import common styles
+import generatePdf from '../pdfGenerator'; // Import the PDF generator
 
 // ag-Grid 라이센스 설정 (만약 있다면)
 // LicenseManager.setLicenseKey('YOUR_LICENSE_KEY');
@@ -25,7 +25,7 @@ const getInitialColumnDefs = () => {
       { field: 'F04120', headerName: '폐기일자', width: 110 }
     ];
   }
-return []; // Return an empty array if not in the browser
+  return []; // Return an empty array if not in the browser
 };
 
 const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDataChange }, ref) => {
@@ -51,10 +51,10 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
   const [columnDefs, setColumnDefs] = useState(getInitialColumnDefs());
 
   const fetchPermissions = useCallback(async () => {
-    const response = await new Promise(resolve => 
-      {  const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true, print: true }), 1000);
-         return () => clearTimeout(timer);
-      }
+    const response = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true, print: true }), 1000);
+      return () => clearTimeout(timer);
+    }
     );
     setPermissions(response);
     if (onPermissionsChange) {
@@ -104,7 +104,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     console.log(`Input changed: ${name} = ${value}`);
     const updatedConditions = { ...conditions, includeDiscarded: e.target.checked };
     setConditions(updatedConditions);
-    
+
     // 조건이 변경될 때마다 localStorage에 저장합니다.
     localStorage.setItem('w_ac01040Conditions', JSON.stringify(updatedConditions));
   };
@@ -127,7 +127,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       }
 
       const response = await axiosInstance.get('comm.jsp', {
-        params,  
+        params,
         paramsSerializer: params => {
           return Object.entries(params)
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
@@ -139,7 +139,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
-        
+
         const formattedResults = newResults.map(item => {
           const formattedItem = { ...item };
           formattedItem.F04100 = formattedItem.F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
@@ -147,7 +147,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
           formattedItem.F04120 = formattedItem.F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
           return formattedItem;
         });
-        
+
         setAllResults(formattedResults);
         setResults(formattedResults);
         setData(formattedResults);
@@ -177,8 +177,8 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
 
   const handleSaveEdit = useCallback((editedItem) => {
     console.log('Edited item:', editedItem);
-    setResults(prevResults => 
-      prevResults.map(item => 
+    setResults(prevResults =>
+      prevResults.map(item =>
         item.F04010 === editedItem.F04010 ? editedItem : item
       )
     );
@@ -222,10 +222,10 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
         const confirmDelete = window.confirm('선택한 계좌코드를 삭제하시겠습니까?');
         if (confirmDelete) {
           try {
-            const params = { 
-              map: 'cd01.ac01040_d', 
-              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
-              F04010: selectedItem.F04010 
+            const params = {
+              map: 'cd01.ac01040_d',
+              table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+              F04010: selectedItem.F04010
             };
 
             const response = await axiosInstance.post('comm_delete.jsp', params);
@@ -275,7 +275,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     handlePdfDownload: () => {
       const gridElement = document.querySelector('.ag-theme-alpine');
       if (gridElement) {
-        const header = ['코드','관리명칭','번호','개설일자','만기일자','폐기일자'];
+        const header = ['코드', '관리명칭', '번호', '개설일자', '만기일자', '폐기일자'];
 
         const rows = [];
         gridRef.current.api.forEachNode(node => {
@@ -356,7 +356,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
       {modalMode && (
         <W_AC01040_01
           item={modalMode === 'create' ? {} : selectedItem}
-          isOpen={isModalOpen} 
+          isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
           mode={modalMode}

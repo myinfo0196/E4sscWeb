@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import W_HC01110_01 from './w_hc01110_01';
+import W_HC01110_01 from './hc01/w_hc01110_01';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -105,26 +105,26 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
 
   useEffect(() => {
     if (cachedData) {
-        setData(cachedData);
-        setAllResults(cachedData); // Ensure allResults is updated with cachedData
-        setResults(Object.values(cachedData)); // Update results with cachedData
+      setData(cachedData);
+      setAllResults(cachedData); // Ensure allResults is updated with cachedData
+      setResults(Object.values(cachedData)); // Update results with cachedData
     } else {
-        // Load saved data from localStorage
-        const savedResults = localStorage.getItem('card2Results');
-        if (savedResults) {
-            const parsedResults = JSON.parse(savedResults);
-            setAllResults(parsedResults);
-            setResults(Object.values(parsedResults));
-            onDataChange(parsedResults);
-        }
+      // Load saved data from localStorage
+      const savedResults = localStorage.getItem('card2Results');
+      if (savedResults) {
+        const parsedResults = JSON.parse(savedResults);
+        setAllResults(parsedResults);
+        setResults(Object.values(parsedResults));
+        onDataChange(parsedResults);
+      }
     }
   }, [cachedData]); // Add onDataChange to dependencies
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const updatedConditions = { ...conditions, [name]: value };
     setConditions(updatedConditions);
-    
+
     // 조건이 변경될 때마다 localStorage에 저장합니다.
     localStorage.setItem('savedCard2Conditions', JSON.stringify(updatedConditions));
   };
@@ -153,7 +153,7 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
         params.sale11010_hc11040 = conditions.representative.trim();
       }
 
-      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', { 
+      const response = await axios.get('https://www.my-info.co.kr/e4ssc-web/jsp/comm.jsp', {
         params,
         paramsSerializer: params => {
           return Object.entries(params)
@@ -161,10 +161,10 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
             .join('&');
         }
       });
-      
+
       if (response.data && response.data.data && response.data.data.result) {
         const newResults = response.data.data.result;
-        
+
         // Ensure newResults is an array of objects with keys matching columnDefs
         const updatedResults = {};
         newResults.forEach(item => {
@@ -205,8 +205,8 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
 
   const handleSaveEdit = useCallback((editedItem) => {
     console.log('Edited item:', editedItem);
-    setResults(prevResults => 
-      prevResults.map(item => 
+    setResults(prevResults =>
+      prevResults.map(item =>
         item.HC11010 === editedItem.HC11010 ? editedItem : item
       )
     );
@@ -214,12 +214,12 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
   }, []);
 
   const fetchPermissions = useCallback(async () => {
-    const response = await new Promise(resolve => 
-        { const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000);
-          return () => clearTimeout(timer);
-        }
-      );
-      setPermissions(response);
+    const response = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve({ view: true, add: true, update: true, delete: true }), 1000);
+      return () => clearTimeout(timer);
+    }
+    );
+    setPermissions(response);
     if (onPermissionsChange) {
       onPermissionsChange(response);
     }
@@ -290,7 +290,7 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
             unit: 'px',
             format: [canvas.width, canvas.height]
           });
-          
+
           pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
           pdf.save('검색결과.pdf');
         });
@@ -367,7 +367,7 @@ const Card2 = forwardRef(({ menuName, onPermissionsChange, cachedData, onDataCha
       {modalMode && (
         <W_HC01110_01
           item={modalMode === 'create' ? {} : selectedItem}
-          isOpen={isModalOpen} 
+          isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSave={handleSaveEdit}
           mode={modalMode}

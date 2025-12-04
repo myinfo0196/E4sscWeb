@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled'
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import w_hc01010 from './w_hc01010'
-import w_hc01110 from './w_hc01110'
-import w_ac01040 from './w_ac01040'
+import w_hc01010 from './hc01/w_hc01010'
+import w_hc01110 from './hc01/w_hc01110'
+import w_ac01040 from './hc01/w_ac01040'
 import card2 from './Card2';
 
 const AppContainer = styled.div`
@@ -216,7 +216,7 @@ const MainMenu = () => {
         console.error('Unexpected data structure:', data);
         return;
       }
-  
+
       const mainMenus = data.filter(item => item.module === 'parent');
       const subMenus = data.filter(item => item.module !== 'parent').reduce((acc, item) => {
         if (!acc[item.buttonid]) {
@@ -225,7 +225,7 @@ const MainMenu = () => {
         acc[item.buttonid].push(item);
         return acc;
       }, {});
-  
+
       console.log('Processed menu data:', { mainMenus, subMenus });
       setMenuData({ mainMenus, subMenus });
       if (mainMenus.length > 0) {
@@ -239,7 +239,7 @@ const MainMenu = () => {
   useEffect(() => {
     const currentPath = location.pathname.split('/').pop();
     const currentMenu = Object.keys(menuData.subMenus).find(key => key.toLowerCase() === currentPath);
-    
+
     if (currentMenu) {
       setActiveTab(currentMenu);
       setOpenTabs(prev => {
@@ -265,12 +265,12 @@ const MainMenu = () => {
       navigate(`/${tab.toLowerCase()}`); // menuToFileMap 사용하지 않고 직접 tab 사용
     }
   };
-  
+
   const updateBreadcrumb = useCallback((menuName) => {
-    const mainMenu = menuData.mainMenus.find(menu => 
+    const mainMenu = menuData.mainMenus.find(menu =>
       menuData.subMenus[menu.buttonid]?.some(subMenu => subMenu.module === menuName)
     );
-  
+
     if (mainMenu) {
       const subMenu = menuData.subMenus[mainMenu.buttonid].find(sub => sub.module === menuName);
       if (subMenu) {
@@ -297,7 +297,7 @@ const MainMenu = () => {
     if (activeTab && cardRefs.current[activeTab]) {
       const cardRef = cardRefs.current[activeTab];
       const currentPermissions = permissions[activeTab] || {};
-      
+
       if (cardRef && cardRef[action]) {
         switch (action) {
           case 'handleSearch':
@@ -362,14 +362,14 @@ const MainMenu = () => {
       if (tabIndex === -1) return prevTabs; // 탭이 없으면 변경 음
 
       const updatedTabs = prevTabs.filter(tab => tab !== tabToClose);
-      
+
       // 닫은 탭이 현재 활성 탭인 경우
       if (activeTab === tabToClose) {
         if (updatedTabs.length > 0) {
           const newActiveTab = tabIndex === prevTabs.length - 1
             ? updatedTabs[updatedTabs.length - 1] // 마지막 탭을 닫은 경우 새로운 마지막 탭으로
             : prevTabs[tabIndex + 1]; // 그 외의 경우 다음 탭으로
-          
+
           setActiveTab(newActiveTab);
           updateBreadcrumb(newActiveTab);
           navigate(`/${newActiveTab.toLowerCase()}`); // menuToFileMap 사용하지 않고 직접 tab 사용
@@ -405,9 +405,9 @@ const MainMenu = () => {
       console.log('No submenus for active main tab:', activeMainTab); // 디버깅을 위한 로그
       return null;
     }
-  
+
     return menuData.subMenus[activeMainTab].map((item) => (
-      <SidebarItem 
+      <SidebarItem
         key={item.module}
         onClick={() => openTab(item.module)}
       >
@@ -450,7 +450,7 @@ const MainMenu = () => {
     }
 
     return (
-      <CardComponent 
+      <CardComponent
         ref={el => cardRefs.current[activeTab] = el}
         onDataChange={(newData) => handleDataChange(activeTab, newData)}
         cachedData={cachedData[activeTab]}
@@ -495,9 +495,9 @@ const MainMenu = () => {
         </ButtonContainer>
         <TabMenu>
           {menuData.mainMenus.map(mainMenu => (
-            <Tab 
+            <Tab
               key={mainMenu.buttonid}
-              active={activeMainTab === mainMenu.buttonid} 
+              active={activeMainTab === mainMenu.buttonid}
               onClick={() => setActiveMainTab(mainMenu.buttonid)}
             >
               {mainMenu.remark}
@@ -531,7 +531,7 @@ const MainMenu = () => {
               >
                 {menuData.subMenus[activeMainTab]?.find(item => item.module === tab)?.remark || tab}
                 <CloseButton onClick={(e) => closeTab(tab, e)}>×</CloseButton>
-              </TabItem>              
+              </TabItem>
             ))}
           </TabList>
           <CardContainer>
