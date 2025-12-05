@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import SearchPostal from './SearchPostal'; // Import the new SearchPostal component
-import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from './StylesPopup'; // Import common styles
+import axiosInstance from '../axiosConfig'; // Axios 인스턴스 import
+import SearchPostal from '../SearchPostal'; // Import the new SearchPostal component
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from '../StylesPopup'; // Import common styles
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
@@ -35,10 +35,10 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const params = { 
-          map: 'cd01.cd01010_s1', 
-          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
-          HC01010: item.HC01010 
+        const params = {
+          map: 'cd01.cd01010_s1',
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+          HC01010: item.HC01010
         };
         const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
           params,
@@ -73,7 +73,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
         // 수정 시에는 Key(HC01010)와 변경된 필드만 전송
         params.map = 'cd01.cd01010_u';
         params.HC01010 = item.HC01010; // Key는 필수
-        
+
         // 원본 item과 비교하여 변경된 필드만 params에 추가
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
@@ -83,7 +83,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
 
         let jsp = 'comm_update.jsp';
         const response = await axiosInstance.post(jsp, params);
-        
+
         if (response.data && response.data.data && response.data.data.result > 0) {
           // 수정된 데이터를 parent에 반영
           onSave({
@@ -157,8 +157,8 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
             <button onClick={onClose}>Close</button>
           </ModalHeader>
           <ContentArea>
-              <InputGroup>
-                <Label>사업장코드</Label>
+            <InputGroup>
+              <Label>사업장코드</Label>
               <Input name="HC01010" value={editedItem.HC01010} onChange={handleChange} maxLength={2} style={{ flex: '0', width: '40px' }} />
             </InputGroup>
             <InputGroup>
@@ -167,7 +167,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
             </InputGroup>
             <InputGroup>
               <Label>사업자번호</Label>
-              <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} onBlur={e => e.target.value = e.target.value.replace(/-/g, '')} placeholder='000-00-00000'/>
+              <Input name="HC01030" value={editedItem.HC01030} onChange={handleChange} pattern="[0-9]{3}-[0-9]{2}-[0-9]{5}" style={{ flex: '0', width: '130px' }} onBlur={e => e.target.value = e.target.value.replace(/-/g, '')} placeholder='000-00-00000' />
             </InputGroup>
             <InputGroup>
               <Label>대표자성명</Label>
@@ -175,7 +175,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
             </InputGroup>
             <InputGroup>
               <Label>우편 번호</Label>
-              <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
+              <Input name="HC01060" value={editedItem.HC01060} onChange={handleChange} style={{ flex: '0', width: '65px' }} />
               <SearchPostal onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
             </InputGroup>
             <InputGroup>
@@ -195,7 +195,7 @@ const w_hc01010_01 = ({ item = {}, onClose, onSave, mode, title }) => {
               <Input name="HC01120" value={editedItem.HC01120} onChange={handleChange} />
               <Label>FAX 번호</Label>
               <Input name="HC01140" value={editedItem.HC01140} onChange={handleChange} />
-            </InputGroup> 
+            </InputGroup>
           </ContentArea>
           <ButtonGroup>
             <SaveButton onClick={handleSave}>저장</SaveButton>

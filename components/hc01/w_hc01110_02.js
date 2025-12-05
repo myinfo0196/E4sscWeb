@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Title, Table, TableHeader, TableRow } from './StylesPrint'; // Import common styles
+import { Title, Table, TableHeader, TableRow } from '../StylesPrint'; // Import common styles
 
 const W_HC01110_02 = forwardRef(({ data, title = "거래처 코드관리" }, ref) => {
   const formattedData = data.map(item => ({
@@ -31,7 +31,7 @@ const W_HC01110_02 = forwardRef(({ data, title = "거래처 코드관리" }, ref
               <td>{item.hc11040}</td>
               <td>{item.hc11070}</td>
               <td>{item.hc11210}</td>
-              </TableRow>
+            </TableRow>
           ))}
         </tbody>
       </Table>

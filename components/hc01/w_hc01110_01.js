@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from './StylesPopup'; // Import common styles
-import SearchPostal from './SearchPostal'; // Import the new SearchPostal component
+import axiosInstance from '../axiosConfig'; // Axios 인스턴스 import
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input, Select } from '../StylesPopup'; // Import common styles
+import SearchPostal from '../SearchPostal'; // Import the new SearchPostal component
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
@@ -39,10 +39,10 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const params = { 
-          map: 'cd01.cd01110_s1', 
-          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
-          HC11010: item.HC11010 
+        const params = {
+          map: 'cd01.cd01110_s1',
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+          HC11010: item.HC11010
         };
         const response = await axiosInstance.get('comm.jsp', {
           params,
@@ -53,7 +53,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
           }
         });
         setEditedItem(response.data.data.result[0]);
-        
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -80,8 +80,8 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         // 수정 시에는 Key(F04010)와 변경된 필드만 전송
         params.map = 'cd01.cd01110_u';
         params.HC11010 = item.HC11010; // Key는 필수
-        params.HC11420 = 'SMIS';     
-        
+        params.HC11420 = 'SMIS';
+
         // 원본 item과 비교하여 변경된 필드만 params에 추가
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
@@ -91,7 +91,7 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
         let jsp = 'comm_update.jsp';
         const response = await axiosInstance.post(jsp, params);
-        
+
         if (response.data && response.data.data && response.data.data.result > 0) {
           // 수정된 데이터를 parent에 반영
           onSave({
@@ -170,27 +170,27 @@ const w_hc01110_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               <Select name="HC11011" value={editedItem.HC11011} onChange={handleChange} >
                 {JSON.parse(localStorage.getItem('CommData')).filter(data => data.hz05020 === '011').map(data => (
                   <option key={data.hz05030} value={data.hz05030} selected={editedItem.HC11011 === data.hz05030}>{data.hz05040}</option>
-                ))} 
+                ))}
               </Select>
             </InputGroup>
             <InputGroup>
               <Label>거래처명</Label>
               <Input name="HC11020" value={editedItem.HC11020 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
               <Label>사업자번호</Label>
-              <Input name="HC11030" value={editedItem.HC11030 || ''} onChange={handleChange} style={{ flex: '0', width:'120px' }}/>
+              <Input name="HC11030" value={editedItem.HC11030 || ''} onChange={handleChange} style={{ flex: '0', width: '120px' }} />
             </InputGroup>
             <InputGroup>
               <Label>대표자명</Label>
               <Input name="HC11040" value={editedItem.HC11040 || ''} onChange={handleChange} style={{ marginRight: '5px' }} />
               <Label>법인 번호</Label>
-              <Input name="HC11080" value={editedItem.HC11080 || ''} onChange={handleChange} size={6} maxLength={6} style={{ flex: '0', width:'95px' }}/>
-              -<Input name="HC11090" value={editedItem.HC11090 || ''} onChange={handleChange} size={7} maxLength={7} style={{ flex: '0', width:'105px' }}/>
+              <Input name="HC11080" value={editedItem.HC11080 || ''} onChange={handleChange} size={6} maxLength={6} style={{ flex: '0', width: '95px' }} />
+              -<Input name="HC11090" value={editedItem.HC11090 || ''} onChange={handleChange} size={7} maxLength={7} style={{ flex: '0', width: '105px' }} />
             </InputGroup>
             <InputGroup>
               <Label>우편번호</Label>
-              <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ flex: '0', width:'65px' }} />
+              <Input name="HC11130" value={editedItem.HC11130 || ''} onChange={handleChange} style={{ flex: '0', width: '65px' }} />
               <SearchPostal onSelect={handlePostalSelect} onClose={() => setIsPopupOpen(false)} /> {/* 우편번호 검색 컴포넌트 추가 */}
-              <Label style={{ width:'50px'}}>주 소</Label>
+              <Label style={{ width: '50px' }}>주 소</Label>
               <Input name="HC11150" value={editedItem.HC11150 || ''} onChange={handleChange} />
             </InputGroup>
             <InputGroup>

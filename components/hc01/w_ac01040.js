@@ -169,6 +169,12 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
     setSelectedItem(event.data);
   }, []);
 
+  const handleRowDoubleClick = useCallback((event) => {
+    setSelectedItem(event.data);
+    setModalMode('edit');
+    setModalTitle('계좌코드 정보 수정');
+  }, []);
+
   const handleCloseModal = useCallback(() => {
     setSelectedItem(null);
     setModalMode(null);
@@ -340,6 +346,7 @@ const w_ac01040 = forwardRef(({ menuName, onPermissionsChange, cachedData1, onDa
               columnDefs={columnDefs}
               rowData={results}
               onRowClicked={handleRowClick}
+              onRowDoubleClicked={handleRowDoubleClick}
               onColumnMoved={updateColumnDefs}
               onColumnResized={updateColumnDefs}
               rowSelection="single"

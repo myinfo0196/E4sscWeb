@@ -1,14 +1,14 @@
 import React, { forwardRef } from 'react';
-import { Title, Table, TableHeader, TableRow } from './StylesPrint'; // Import common styles
+import { Title, Table, TableHeader, TableRow } from '../StylesPrint'; // Import common styles
 
 const W_HC01010_02 = forwardRef(({ data, title = "사업장 코드관리" }, ref) => {
   const formattedData = data.map(item => ({
-    hc01010:item.HC01010,
-    hc01030:item.HC01030,
-    hc01020:item.HC01020,
-    hc01040:item.HC01040,
-    hc01100:item.HC01100,
-    hc01090:item.HC01090,
+    hc01010: item.HC01010,
+    hc01030: item.HC01030,
+    hc01020: item.HC01020,
+    hc01040: item.HC01040,
+    hc01100: item.HC01100,
+    hc01090: item.HC01090,
   }));
 
   return (
@@ -31,7 +31,7 @@ const W_HC01010_02 = forwardRef(({ data, title = "사업장 코드관리" }, ref
               <td>{item.hc01040}</td>
               <td>{item.hc01100}</td>
               <td>{item.hc01090}</td>
-              </TableRow>
+            </TableRow>
           ))}
         </tbody>
       </Table>

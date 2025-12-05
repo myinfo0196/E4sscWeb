@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
-import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input } from './StylesPopup'; // Import common styles
+import axiosInstance from '../axiosConfig'; // Axios 인스턴스 import
+import { ModalBackground, ModalContent, ModalHeader, ContentArea, InputGroup, Label, Input } from '../StylesPopup'; // Import common styles
 import Draggable from 'react-draggable'; // Import Draggable
 
 const ButtonGroup = styled.div`
@@ -33,10 +33,10 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const params = { 
-          map: 'cd01.ac01040_s1', 
-          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable, 
-          f04010: item.F04010 
+        const params = {
+          map: 'cd01.ac01040_s1',
+          table: JSON.parse(localStorage.getItem('LoginResults')).dboTable,
+          f04010: item.F04010
         };
         const response = await axiosInstance.get('comm.jsp', { // 기본 URL 사용
           params,
@@ -45,10 +45,12 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
               .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
               .join('&');
           }
-        });        
-        const formattedItem = { ...response.data.data.result[0], F04100: response.data.data.result[0].F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
-                                                               , F04110: response.data.data.result[0].F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
-                                                               , F04120: response.data.data.result[0].F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') };
+        });
+        const formattedItem = {
+          ...response.data.data.result[0], F04100: response.data.data.result[0].F04100.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
+          , F04110: response.data.data.result[0].F04110.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
+          , F04120: response.data.data.result[0].F04120.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')
+        };
         setEditedItem(formattedItem);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -61,8 +63,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const formattedValue = name === 'F04130' || name === 'F04150' ? 
-        Number(value.replace(/,/g, '')).toLocaleString() : value;
+    const formattedValue = name === 'F04130' || name === 'F04150' ?
+      Number(value.replace(/,/g, '')).toLocaleString() : value;
     setEditedItem(prev => ({ ...prev, [name]: formattedValue }));
   };
 
@@ -76,8 +78,8 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
         // 수정 시에는 Key(F04010)와 변경된 필드만 전송
         params.map = 'cd01.ac01040_u';
         params.F04010 = item.F04010; // Key는 필수
-        params.F04210 = 'SMIS';     
-        
+        params.F04210 = 'SMIS';
+
         // 원본 item과 비교하여 변경된 필드만 params에 추가
         Object.keys(editedItem).forEach(key => {
           if (item[key] !== editedItem[key]) {
@@ -93,7 +95,7 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
 
         let jsp = 'comm_update.jsp';
         const response = await axiosInstance.post(jsp, params);
-        
+
         if (response.data && response.data.data && response.data.data.result > 0) {
           // 수정된 데이터를 parent에 반영
           onSave({
@@ -181,20 +183,20 @@ const w_ac01040_01 = ({ item = {}, isOpen, onClose, onSave, mode, title }) => {
             </InputGroup>
             <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
               <Label>만기일자</Label>
-              <Input type="date"  name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
+              <Input type="date" name="F04110" value={editedItem.F04110} onChange={handleChange} style={{ marginRight: '10px' }} />
               <Label>년이자율</Label>
               <Input name="F04140" value={editedItem.F04140} onChange={handleChange} style={{ textAlign: 'right' }} />
             </InputGroup>
             <InputGroup style={{ display: 'flex', alignItems: 'center' }}>
               <Label>폐기일자</Label>
-              <Input type="date"  name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
+              <Input type="date" name="F04120" value={editedItem.F04120} onChange={handleChange} style={{ marginRight: '10px' }} />
               <Label>월상환액</Label>
               <Input name="F04150" value={editedItem.F04150} onChange={handleChange} style={{ textAlign: 'right' }} />
             </InputGroup>
             <InputGroup>
               <Label>비 고</Label>
               <Input name="F04160" value={editedItem.F04160} onChange={handleChange} />
-            </InputGroup> 
+            </InputGroup>
           </ContentArea>
           <ButtonGroup>
             <SaveButton onClick={handleSave}>저장</SaveButton>
