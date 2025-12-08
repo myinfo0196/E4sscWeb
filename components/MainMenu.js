@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, useNavigate, useLocation, Navigate } from 'reac
 import styled from '@emotion/styled'
 import axiosInstance from './axiosConfig'; // Axios 인스턴스 import
 import w_hc01010 from './hc01/w_hc01010'
+import w_hc01020 from './hc01/w_hc01020'
 import w_hc01110 from './hc01/w_hc01110'
 import w_ac01040 from './hc01/w_ac01040'
 import card2 from './Card2';
@@ -425,28 +426,19 @@ const MainMenu = () => {
     }
   }, [isLoading]);
 
-
-  console.log('Active Tab:', activeTab);
-  console.log('Permissions:', permissions);
-  console.log('Active Tab Permissions:', getActiveTabPermissions());
-
   const renderContent = () => {
-    let CardComponent = null;
-    switch (activeTab) {
-      case 'w_hc01010':
-        CardComponent = w_hc01010;
-        break;
-      case 'w_hc01110':
-        CardComponent = w_hc01110;
-        break;
-      case 'w_ac01040':
-        CardComponent = w_ac01040;
-        break;
-      case 'card2':
-        CardComponent = card2; // Ensure card2 is correctly assigned
-        break;
-      default:
-        return <div>왼쪽 사이드바에서 메뉴를 선택해주세요.</div>;
+    const COMPONENT_MAP = {
+      'w_hc01010': w_hc01010,
+      'w_hc01020': w_hc01020,
+      'w_hc01110': w_hc01110,
+      'w_ac01040': w_ac01040,
+      'card2': card2,
+    };
+
+    const CardComponent = COMPONENT_MAP[activeTab];
+
+    if (!CardComponent) {
+      return <div>왼쪽 사이드바에서 메뉴를 선택해주세요.</div>;
     }
 
     return (
